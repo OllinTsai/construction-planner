@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>工地智囊 - 施工計畫智慧生成與平板機具點檢系統</title>
+  <title>工地智囊 - 施工計畫智慧生成與平板現場點檢系統</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts Inter & Noto Sans TC -->
@@ -26,6 +26,12 @@
               700: '#075985',
               800: '#0c4a6e',
               900: '#082f49',
+            },
+            safety: {
+              yellow: '#eab308',
+              orange: '#f97316',
+              red: '#ef4444',
+              green: '#10b981',
             }
           }
         }
@@ -33,1752 +39,239 @@
     }
   </script>
   <style>
-    /* 平板觸控與防止雙擊縮放優化 */
-    * {
+    body {
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    input, textarea {
-      user-select: text;
-    }
-    @media print {
-      .no-print {
-        display: none !important;
-      }
-      .print-only {
-        display: block !important;
-      }
-      body {
-        background: white !important;
-        color: black !important;
-        font-size: 11pt;
-      }
-      .page-break {
-        page-break-before: always;
-      }
     }
     .touch-target {
       min-height: 48px;
+      min-width: 48px;
+    }
+    .checked-item {
+      text-decoration: line-through;
+      color: #94a3b8;
+      background-color: #f8fafc;
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-area, #printable-area * { visibility: visible; }
+      #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans pb-20 sm:pb-0">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-  <!-- 頂部導覽列 -->
-  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b border-slate-800 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+  <!-- 頂部導航列 -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
-          <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-          </svg>
+        <div class="bg-safety-yellow text-slate-950 p-2 rounded-lg font-black tracking-wider text-xl flex items-center justify-center shadow-inner">
+          工
         </div>
         <div>
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            工地智囊 <span class="text-xs bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30">現場交辦與機具清點</span>
+          <h1 class="text-lg font-black tracking-wide flex items-center gap-2">
+            工地智囊 <span class="text-xs bg-brand-600 text-brand-50 px-2 py-0.5 rounded font-medium">企業指揮版</span>
           </h1>
-          <p class="text-xs text-slate-400 hidden sm:block">自然語言工序分解 • 職災風險防範評估 • 平板防呆點檢表</p>
+          <p class="text-xs text-slate-400">口語派工 ➔ 計畫生成 ➔ 平板現場點檢</p>
         </div>
       </div>
-
       <div class="flex items-center space-x-2">
-        <button id="btn-api-config" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-          </svg>
+        <button id="btn-open-api-modal" class="touch-target flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 transition">
+          <span id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
           <span id="api-status-text">API 設定</span>
         </button>
-
-        <button id="btn-export-print" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold transition flex items-center gap-1 shadow">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-          </svg>
-          <span>列印/派工單</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 當前啟用案件提示列 -->
-    <div class="bg-slate-800/95 border-t border-slate-700/60 px-4 sm:px-6 py-2 text-xs flex items-center justify-between text-slate-300">
-      <div class="flex items-center space-x-2 truncate">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span class="text-slate-400">目前作業案件：</span>
-        <span id="header-active-code" class="font-bold text-amber-300 font-mono">載入中...</span>
-        <span id="header-active-title" class="hidden sm:inline text-slate-300 truncate max-w-md"></span>
-      </div>
-      <div>
-        <button id="btn-quick-switch" class="text-amber-400 hover:text-amber-300 underline font-medium">切換案件 ▾</button>
       </div>
     </div>
   </header>
 
   <!-- 主內容容器 -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 flex-1 w-full flex flex-col space-y-4">
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
 
-    <!-- 頁籤切換導航（響應式） -->
-    <nav class="flex rounded-xl bg-white p-1.5 shadow-sm border border-slate-200/80 gap-1.5 overflow-x-auto no-print">
-      <button data-tab="tab-projects" class="tab-btn flex-1 py-3 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 bg-slate-900 text-white shadow-sm touch-target whitespace-nowrap">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-        <span>📁 案件檔案庫</span>
-        <span id="badge-projects-count" class="px-2 py-0.5 text-xs bg-amber-400 text-slate-900 rounded-full font-bold">2</span>
+    <!-- 頁籤切換欄（專為平板觸控加大） -->
+    <nav class="flex border-b border-slate-300 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto" aria-label="Tabs">
+      <button class="nav-tab active-tab touch-target px-5 py-3 font-bold text-sm text-brand-600 border-b-4 border-brand-600 whitespace-nowrap flex items-center gap-2" data-target="tab-input">
+        <span>💬 1. 負責人口語交辦</span>
       </button>
-
-      <button data-tab="tab-input" class="tab-btn flex-1 py-3 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 touch-target whitespace-nowrap">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-        </svg>
-        <span>1. 負責人口語交辦</span>
+      <button class="nav-tab touch-target px-5 py-3 font-semibold text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2" data-target="tab-steps">
+        <span>📋 2. 施工工序與風險</span>
       </button>
-
-      <button data-tab="tab-plan" class="tab-btn flex-1 py-3 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 touch-target whitespace-nowrap">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-        </svg>
-        <span>2. 施工工序與風險</span>
-        <span id="badge-steps-count" class="hidden px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full font-bold">0</span>
+      <button class="nav-tab touch-target px-5 py-3 font-semibold text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2" data-target="tab-checklist">
+        <span>✅ 3. 機具平板點檢表</span>
+        <span id="badge-check-progress" class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">0%</span>
       </button>
-
-      <button data-tab="tab-checklist" class="tab-btn flex-1 py-3 px-3 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 touch-target whitespace-nowrap">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span>3. 平板機具點檢表</span>
-        <span id="badge-tool-progress" class="hidden px-2 py-0.5 text-xs bg-emerald-100 text-emerald-800 rounded-full font-bold">0/0</span>
+      <button class="nav-tab touch-target px-5 py-3 font-semibold text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2" data-target="tab-projects">
+        <span>📁 4. 歷史案件檔案庫</span>
       </button>
     </nav>
 
-    <!-- TAB 0: 案件檔案庫與專案管理中心 -->
-    <section id="tab-projects" class="tab-content block space-y-4">
-      <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 mb-4">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span class="p-2 bg-amber-100 text-amber-800 rounded-lg">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
-              </span>
-              工程案場歷程庫（多案管理）
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">統一管理不同日期與案場的專屬施工計畫、工序拆解與平板器具點檢進度。</p>
-          </div>
-
-          <div class="flex items-center gap-2 flex-wrap">
-            <button id="btn-new-empty-case" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-900 transition flex items-center gap-1.5 shadow-sm">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              建立新工程案
-            </button>
-            <button id="btn-export-backup" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1">
-              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-              匯出備份 (JSON)
-            </button>
-            <label class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 cursor-pointer">
-              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-              </svg>
-              匯入備份
-              <input id="input-import-file" type="file" accept=".json" class="hidden">
-            </label>
-          </div>
-        </div>
-
-        <!-- 案件列表容器 -->
-        <div id="projects-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- 卡片動態渲染 -->
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 1: 負責人口語交辦輸入區 -->
-    <section id="tab-input" class="tab-content hidden space-y-4">
-      <!-- 領導者心法指引卡 -->
-      <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-sm border border-slate-700">
-        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2 mb-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-          </svg>
-          負責人交辦與員工賦能核心流程（SOP）
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs leading-relaxed text-slate-300">
-          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
-            <span class="text-amber-400 font-bold block mb-1">1. 口語快速交代大原則</span>
-            負責人免於瑣碎打字，只需將重點案況、工序順序與特殊要求講清楚，不用自己一項項列工具。
-          </div>
-          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
-            <span class="text-amber-400 font-bold block mb-1">2. AI 補足工安與防錯機制</span>
-            系統自動比對法規工安防範（防墜、防感電、防護裝備），並生成驗收查核點，確保員工知道「紅線在哪」。
-          </div>
-          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
-            <span class="text-amber-400 font-bold block mb-1">3. 平板點檢自主負責</span>
-            裝車出發前、抵達現場後，由領班或員工拿著平板逐項 Check。員工邊點檢邊學習，若有突發小細節也能從中摸索成長。
-          </div>
-        </div>
+    <!-- 頁籤一：口語交辦輸入 -->
+    <section id="tab-input" class="tab-content bg-white p-5 sm:p-6 rounded-b-xl shadow-sm flex flex-col gap-5">
+      <div class="border-l-4 border-brand-600 pl-4 py-1">
+        <h2 class="text-lg font-bold text-slate-900">以自然語言交代案場任務</h2>
+        <p class="text-sm text-slate-600 mt-1">
+          如同平時口頭交辦工作一樣，輸入日期、地點、施工項目、大概工序或需帶工具。AI 會自動為您推導出完整的安全評估與點檢表。
+        </p>
       </div>
 
-      <!-- 口語交辦輸入核心面板 -->
-      <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path>
-              </svg>
-              自然語言工程交辦輸入
-            </h2>
-            <p class="text-xs text-slate-500">直接輸入或點選下方語音交辦。說明預定施工日期、地點、施工順序工步，以及希望員工特別小心的要求。</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="btn-voice-input" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 transition flex items-center gap-1.5">
-              <span id="voice-icon" class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-              <span id="voice-btn-text">平板語音輸入</span>
-            </button>
-            <button id="btn-clear" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 transition">
-              清空內容
-            </button>
-          </div>
-        </div>
+      <!-- 快速範本標籤 -->
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <span class="text-xs font-semibold text-slate-500">常見情境範本：</span>
+        <button class="btn-preset text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition">
+          🏢 20261024_日月潭吊裝案
+        </button>
+        <button class="btn-preset text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition">
+          ✈️ 20261221_小港機場施工案
+        </button>
+        <button class="btn-preset text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition">
+          💧 新板特區高空外牆防水防墜工項
+        </button>
+      </div>
 
-        <!-- 常用情境範本快捷鍵 -->
-        <div class="mb-3">
-          <span class="text-xs font-bold text-slate-500 block mb-1.5">常見工程情境快速套用：</span>
-          <div class="flex flex-wrap gap-2">
-            <button class="btn-preset px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-              data-prompt="預計 2026/10/24 在南投日月潭水社碼頭進行鋼架吊裝與棧道加固工程。第一步先進行水上浮台固定與警戒線拉設，第二步起重機就位吊掛H型鋼，第三步施作螺栓緊固與防鏽漆補修。臨水作業全員必須穿救生衣與雙大鉤防墜，嚴防鋼樑擺盪撞擊，螺栓扭力要達標！">
-              🌊 日月潭水上鋼架吊裝
-            </button>
-            <button class="btn-preset px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-              data-prompt="預計 2026/12/21 在高雄小港機場國內航廈進行地坪研磨與環氧樹脂耐磨塗裝。順序：第一步辦理安檢換證與防塵圍幕架設，第二步混凝土素地無塵打磨與裂縫灌注修補，第三步底中面漆滾塗。管制區零晨5點必須淨空，全場嚴格防塵避免航站警報，配置防爆抽風機。">
-              ✈️ 小港機場無塵地坪塗裝
-            </button>
-            <button class="btn-preset px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
-              data-prompt="預計 2026/11/05 在竹科廠房進行高空排氣風管改造工程。第一步確認動火許可與搭設高空作業車防護，第二步舊鍍鋅風管切除拆卸，第三步新SUS304風管法蘭組裝與氬焊滿焊，第四步抽風試壓氣密測試。重點：動火現場備妥乾粉滅火器2具，高空作業全員雙鉤扣牢母索。">
-              🏭 廠房高空風管氬焊工程
-            </button>
-          </div>
-        </div>
+      <!-- 自然語言文字框與語音輸入 -->
+      <div class="relative">
+        <textarea id="input-prompt" rows="5" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：下週二 10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。請預備 50 噸吊車、吊車腳座墊板、高空防墜雙掛勾、扭力扳手與防墜安全帶..."></textarea>
+        <button id="btn-voice-input" title="口用語音輸入" class="absolute right-3 bottom-3 p-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center justify-center touch-target">
+          🎙️ <span class="text-xs ml-1 font-medium hidden sm:inline">語音輸入</span>
+        </button>
+      </div>
 
-        <!-- 自然語言 Textarea -->
-        <div class="relative">
-          <textarea id="input-prompt" rows="5" placeholder="老闆您可以這樣講：&#10;『預計下週二在台中烏日高鐵特區進行外牆防水與冷氣排水配管。順序是：先搭設活動施工架並拉防墜母索，接著高壓清洗外牆裂縫，然後施作底漆與彈性水泥防水層，最後配設PVC排水管並做試水測試。請特別注意高空防墜，一定要戴好安全帽，試水絕對不能漏！』" class="w-full p-4 rounded-xl border border-slate-300 text-slate-800 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition leading-relaxed"></textarea>
-        </div>
-
-        <!-- 生成按鈕 -->
-        <div class="mt-4 flex items-center justify-between">
-          <span class="text-xs text-slate-400">💡 系統會自動提取案名、工步、危害對策並歸納出平板機具點檢表</span>
-          <button id="btn-generate" class="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-black text-sm transition flex items-center gap-2 shadow-md hover:shadow-lg">
-            <svg id="generate-spinner" class="animate-spin h-4 w-4 text-slate-900 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="generate-text">開始智慧解構並生成計畫表</span>
+      <!-- 操作按鈕列 -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <span class="text-xs text-slate-500 flex items-center gap-1.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-safety-green"></span>
+          支援離線智慧解析與雲端 Gemini 雙模式
+        </span>
+        <div class="flex items-center gap-3">
+          <button id="btn-clear-input" class="touch-target px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition">
+            清空內容
+          </button>
+          <button id="btn-generate" class="touch-target bg-brand-600 hover:bg-brand-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition active:scale-95">
+            <span id="btn-generate-spinner" class="hidden animate-spin">⏳</span>
+            <span>⚡ 生成施工計畫與表單</span>
           </button>
         </div>
       </div>
     </section>
 
-    <!-- TAB 2: 施工工序、機具與風險評估表 -->
-    <section id="tab-plan" class="tab-content hidden space-y-4">
-      <!-- 專案基本資料卡 -->
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
-          <div>
-            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200/60 uppercase">派工案場資訊</span>
-            <h2 id="plan-title" class="text-lg sm:text-xl font-bold text-slate-900 mt-1">尚未建立施工計畫</h2>
-          </div>
-          <div class="flex items-center gap-2 no-print">
-            <button id="btn-quick-line" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12c0 1.9.53 3.67 1.45 5.18L2 22l4.98-1.42A9.94 9.94 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.63 0-3.14-.49-4.41-1.32l-.32-.21-3.26.93.94-3.18-.23-.35A7.94 7.94 0 014 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8z"/>
-              </svg>
-              複製 LINE 工務群格式
-            </button>
-          </div>
+    <!-- 頁籤二：施工工序與危害分析 -->
+    <section id="tab-steps" class="tab-content hidden bg-white p-5 sm:p-6 rounded-b-xl shadow-sm flex flex-col gap-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md" id="badge-plan-date">2026-10-24</span>
+          <h2 class="text-xl font-black text-slate-900 mt-1" id="label-plan-title">案場名稱：日月潭鋼構吊裝與防墜組裝工程</h2>
+          <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+            <span>📍 施工地點：<span id="label-plan-location">南投縣日月潭遊客中心後棟</span></span>
+            <span>•</span>
+            <span>👷 負責人交辦事項</span>
+          </p>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-            <span class="text-xs text-slate-500 block">預定施工日期</span>
-            <span id="plan-date" class="font-bold text-slate-800">--</span>
-          </div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-            <span class="text-xs text-slate-500 block">施工案場地點</span>
-            <span id="plan-location" class="font-bold text-slate-800">--</span>
-          </div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-            <span class="text-xs text-slate-500 block">負責人工務叮嚀與紅線</span>
-            <span id="plan-leader-note" class="font-bold text-amber-700">--</span>
-          </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-copy-line" class="touch-target text-xs font-bold bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition">
+            📲 複製 LINE 派工重點
+          </button>
+          <button id="btn-print" class="touch-target text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition">
+            🖨️ 列印 / 另存 PDF
+          </button>
         </div>
       </div>
 
-      <!-- 工序與危害展開列表 -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between px-1">
-          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            各工步工法拆解、工具對應與風險管理表
-          </h3>
-          <span class="text-xs text-slate-500">員工需逐一掌握大方向</span>
-        </div>
+      <!-- 總體安全紅線宣導 -->
+      <div class="bg-amber-50 border-l-4 border-safety-yellow p-4 rounded-r-xl">
+        <h4 class="text-sm font-black text-amber-900 flex items-center gap-1.5">
+          ⚠️ 負責人嚴正宣示・案場安全紅線（不可退讓底線）
+        </h4>
+        <p class="text-xs text-amber-800 mt-1 leading-relaxed" id="label-plan-redlines">
+          1. 高空作業未滿 100% 雙鉤防墜禁止施工。 2. 吊掛半徑下方嚴禁人員站立。 3. 吊車腳座必須實鋪厚鋼板。
+        </p>
+      </div>
 
-        <div id="steps-container" class="space-y-3">
-          <!-- 卡片動態生成 -->
+      <!-- 工序與危害卡片容器 -->
+      <div id="steps-container" class="flex flex-col gap-4">
+        <!-- 卡片將由 JS 動態生成 -->
+      </div>
+    </section>
+
+    <!-- 頁籤三：機具彙整與平板現場清點 -->
+    <section id="tab-checklist" class="tab-content hidden bg-white p-5 sm:p-6 rounded-b-xl shadow-sm flex flex-col gap-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div>
+          <h2 class="text-xl font-black text-slate-900">機具物料裝車・現場出退庫點檢表</h2>
+          <p class="text-xs text-slate-500 mt-1">
+            由所有工步自動彙總，點擊項目即完成清點，支援震動反饋與離線保存。
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-reset-checklist" class="touch-target text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg border border-slate-300 transition">
+            重設所有勾選
+          </button>
+        </div>
+      </div>
+
+      <!-- 點檢進度總覽面板 -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+        <div class="flex justify-between items-center text-sm font-bold text-slate-700">
+          <span>清點完成率</span>
+          <span id="text-progress-ratio">0 / 0 項 (0%)</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden">
+          <div id="bar-checklist-progress" class="bg-safety-green h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- 工具分類彙整清單（按類別切分） -->
+      <div id="checklist-container" class="flex flex-col gap-5">
+        <!-- 分類點檢列表由 JS 動態生成 -->
+      </div>
+
+      <!-- 平板手寫電子簽章板 -->
+      <div class="mt-4 border-t border-slate-200 pt-5 flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            ✍️ 帶班主管 / 現場負責人點檢簽名確認
+          </h3>
+          <button id="btn-clear-sig" class="text-xs text-slate-500 hover:text-red-600 underline">
+            清除重新簽名
+          </button>
+        </div>
+        <div class="w-full max-w-md h-36 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 overflow-hidden relative">
+          <canvas id="signature-pad" class="w-full h-full cursor-crosshair"></canvas>
+          <span class="absolute bottom-2 right-2 text-[10px] text-slate-400 pointer-events-none select-none">
+            請以觸控筆或手指在框內簽署
+          </span>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: 平板專用機具器具點檢表 -->
-    <section id="tab-checklist" class="tab-content hidden space-y-4">
-      <!-- 點檢進度儀表 -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-              </svg>
-              機具物料彙總與出工前平板清點表
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">點擊品項即可快速勾稽（綠色代表已點妥上車，避免現場漏帶工具工時延誤）</p>
-          </div>
-
-          <!-- 快速過濾器與重設 -->
-          <div class="flex items-center gap-2 no-print">
-            <button id="btn-filter-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition">全部品項</button>
-            <button id="btn-filter-pending" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">未點檢</button>
-            <button id="btn-reset-check" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition border border-rose-200">重設勾選</button>
-          </div>
+    <!-- 頁籤四：歷史案件檔案庫 -->
+    <section id="tab-projects" class="tab-content hidden bg-white p-5 sm:p-6 rounded-b-xl shadow-sm flex flex-col gap-6">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div>
+          <h2 class="text-xl font-black text-slate-900">歷史案件庫・施工經驗資料庫</h2>
+          <p class="text-xs text-slate-500 mt-1">
+            每個案場都是寶貴的工程資產，支援即時切換案場、重複套用範本與本機資料備份。
+          </p>
         </div>
-
-        <!-- 點檢進度條 -->
-        <div class="w-full bg-slate-100 rounded-full h-3.5 p-0.5 overflow-hidden flex border border-slate-200">
-          <div id="checklist-progress-bar" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-        <div class="flex justify-between items-center text-xs mt-2 font-medium text-slate-500">
-          <span id="checklist-progress-text">已清點：0 / 0 件 (0%)</span>
-          <span id="checklist-status-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">準備裝載</span>
+        <div class="flex items-center gap-2">
+          <button id="btn-export-json" class="touch-target text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg border border-slate-300 transition">
+            💾 匯出備份 (JSON)
+          </button>
         </div>
       </div>
 
-      <!-- 機具分類容器 -->
-      <div id="equipment-categories-container" class="space-y-4">
-        <!-- 分類卡片動態渲染 -->
-      </div>
-
-      <!-- 現場交接簽署卡（平板專用手寫簽名板） -->
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-          <div>
-            <h3 class="font-bold text-slate-900 text-sm">現場工務代表簽署 (責任交辦確認)</h3>
-            <p class="text-xs text-slate-500">員工出工前清點無誤並已理解危害重點，於下方簽名</p>
-          </div>
-          <button id="btn-clear-signature" class="text-xs text-slate-500 hover:text-slate-800 underline no-print">清除簽名</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">平板數位手寫簽名：</label>
-            <canvas id="signature-pad" class="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl touch-none"></canvas>
-          </div>
-          <div class="flex flex-col justify-between space-y-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">出工人數與現場負責人：</label>
-              <div class="grid grid-cols-2 gap-2">
-                <input id="input-crew-leader" type="text" placeholder="現場領班姓名" class="p-2.5 text-xs rounded-lg border border-slate-300 bg-slate-50">
-                <input id="input-crew-count" type="number" placeholder="現場施作總人數" class="p-2.5 text-xs rounded-lg border border-slate-300 bg-slate-50">
-              </div>
-            </div>
-            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200/60 text-xs text-amber-800 leading-relaxed">
-              <strong>工安守則確認：</strong> 全員已受危害告知，已配戴合格安全帽、工作鞋，高空作業落實雙大鉤防墜，確認電源開關合格掛牌。
-            </div>
-          </div>
-        </div>
+      <!-- 案件列表 -->
+      <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- 卡片由 JS 動態生成 -->
       </div>
     </section>
 
   </main>
 
-  <!-- 浮動訊息提示 Toast -->
-  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div id="toast-content" class="bg-slate-900 text-white text-xs sm:text-sm font-medium py-3 px-5 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700">
-      <span id="toast-icon">✓</span>
-      <span id="toast-message">提示訊息</span>
-    </div>
-  </div>
-
-  <!-- API KEY 設定彈窗 -->
-  <div id="modal-api-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
-        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-          </svg>
-          Gemini API 密鑰設置與連線診斷
-        </h3>
-        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
-      </div>
-
-      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
-        系統支援 Google Gemini Flash 模型進行工程工步與機具清單解構。金鑰僅儲存在您的瀏覽器本地（LocalStorage），絕不上傳外流。
-      </p>
-
-      <!-- 金鑰輸入框與顯示切換 -->
-      <div class="mb-3">
-        <div class="flex items-center justify-between mb-1">
-          <label class="block text-xs font-bold text-slate-700">Gemini API Key：</label>
-          <button id="btn-toggle-key-visibility" type="button" class="text-xs text-amber-600 hover:text-amber-700 font-medium">👁️ 顯示明碼</button>
-        </div>
-        <div class="relative">
-          <input id="input-api-key" type="password" placeholder="貼上 AIzaSy 開頭的金鑰..." class="w-full p-3 pr-10 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-none">
-        </div>
-      </div>
-
-      <!-- 連線診斷結果訊息顯示區塊 -->
-      <div id="api-test-result" class="hidden mb-4 p-3.5 rounded-xl text-xs leading-relaxed transition-all"></div>
-
-      <!-- 按鈕控制列 -->
-      <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
-        <button id="btn-test-key" type="button" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center gap-1.5 border border-slate-300">
-          <svg id="test-spinner" class="animate-spin h-3.5 w-3.5 text-slate-700 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span id="test-btn-text">⚡ 測試連線與檢測</span>
-        </button>
-
-        <div class="flex items-center gap-2">
-          <button id="btn-clear-key" type="button" class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-medium transition">
-            清除金鑰
-          </button>
-          <button id="btn-save-key" type="button" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs transition shadow-sm">
-            儲存設定
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /* ==========================================================================
-       狀態管理與多專案資料模型
-       ========================================================================== */
-    let userApiKey = localStorage.getItem('GEMINI_API_KEY') || "";
-
-    // 內建兩大標準工程範本與多案件陣列
-    let projects = [
-      {
-        id: 'proj-20261024-sunmoon',
-        code: '20261024_日月潭吊裝案',
-        projectTitle: '日月潭水社碼頭鋼架吊裝與棧道加固工程',
-        constructionDate: '2026/10/24',
-        location: '南投縣魚池鄉日月潭水社碼頭',
-        workScopeSummary: '碼頭臨水側H型鋼樑吊裝、水上浮動平台防護、高空螺栓扭力鎖固。',
-        leaderKeyFocus: '臨水作業全員穿妥救生衣與雙大鉤安全帶！嚴防吊掛物下方有人走動，落實吊掛指揮手哨音管制。',
-        steps: [
-          {
-            stepNumber: 1,
-            stepName: '水上施工浮台固定與警戒線拉設',
-            description: '將工作浮台雙錨固定，並於水社碼頭周邊50公尺拉設黃黑警戒浮球與警示帶，指派專人管制遊客。',
-            assignedRole: '工安主任 / 浮台班長',
-            riskLevel: '高風險',
-            hazardRisks: ['人員落水溺水', '遊客誤入吊掛迴轉半徑'],
-            safetyMeasures: ['全員穿著合格救生衣', '常備救生圈2只與救生繩索', '指派水上救生瞭望員'],
-            inspectionPoints: ['浮台繫泊錨鍊拉力確認', '警戒區嚴禁任何未穿救生衣人員進入'],
-            tools: ['氣脹式自動充氣救生衣', '水上救生圈(附30米繩)', '警示浮標線', '無線對講機']
-          },
-          {
-            stepNumber: 2,
-            stepName: '50噸全吊式起重機就位與支腿外伸',
-            description: '起重機於硬化鋪面就座，四組油壓支腿完全伸出，下方鋪設加厚鋼板分散地面載重。',
-            assignedRole: '起重機操作手與吊掛指揮員',
-            riskLevel: '高風險',
-            hazardRisks: ['地盤承載力不足導致傾翻', '支腿油壓沉陷'],
-            safetyMeasures: ['鋪設25mm厚鋼質墊板', '水平儀確認車身水平在0.5度以內'],
-            inspectionPoints: ['吊卡出廠檢驗合格證確認', '指揮手持有合格吊掛證照'],
-            tools: ['50噸輪式吊車', '25mm加厚鋼墊板', '高精度氣泡水平儀', '吊車指揮哨']
-          },
-          {
-            stepNumber: 3,
-            stepName: 'H型鋼吊掛就位與高張力螺栓緊固',
-            description: '使用雙吊帶45度吊掛鋼樑，導向繩導引至基座，施作高張力螺栓預鎖與扭力板手校驗。',
-            assignedRole: '鋼構組立師傅 (2名)',
-            riskLevel: '高風險',
-            hazardRisks: ['鋼樑擺盪撞擊', '高空墜落', '手部擠夾傷'],
-            safetyMeasures: ['綁紮兩條10米引導拉繩', '作業人員於高空車上雙鉤扣牢防墜'],
-            inspectionPoints: ['扭力板手校正磅數達標(扭斷尾栓)', '高空防墜器垂直母索拉緊'],
-            tools: ['數位定扭力板手組', '高拉力尼龍吊帶(5噸)', '引導防擺拉繩', '自鎖式垂直防墜器']
-          }
-        ],
-        consolidatedEquipment: [
-          {
-            category: '🏗️ 重型吊裝與動力機具',
-            items: [
-              { name: '50噸全路面輪式起重機', spec: '年度特檢合格（附檢驗證）', qty: '1 台', checked: false },
-              { name: '25mm高強度鋪路鋼墊板', spec: '2m x 1m (四角支腿用)', qty: '4 塊', checked: false },
-              { name: '高空作業自走剪刀車/曲臂車', spec: '作業高度12M', qty: '1 台', checked: false }
-            ]
-          },
-          {
-            category: '🦺 臨水與高空專用PPE防護裝備',
-            items: [
-              { name: '自動充氣式救生衣', spec: '浮力150N (臨水全員必穿)', qty: '6 件', checked: false },
-              { name: '背負式雙大鉤防墜安全帶', spec: 'CNS認證 (附衝擊吸收包)', qty: '4 組', checked: false },
-              { name: '自鎖式防墜母索與抓節器', spec: '16mm 錦綸高空母索', qty: '2 條', checked: false }
-            ]
-          },
-          {
-            category: '🔧 吊掛索具與緊固工具組',
-            items: [
-              { name: '高強度雙眼尼龍吊帶', spec: '安全荷重大於5噸 (寬度100mm)', qty: '4 條', checked: false },
-              { name: '數位定扭力板手組', spec: '500-1000 N.m 校正合格', qty: '2 支', checked: false },
-              { name: '防擺導引繩', spec: '12mm 尼龍繩 15公尺', qty: '2 捲', checked: false }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'proj-20261221-xiaogang',
-        code: '20261221_小港機場施工案',
-        projectTitle: '小港國際機場國內航廈地坪打磨與耐磨環氧樹脂塗裝',
-        constructionDate: '2026/12/21',
-        location: '高雄國際航空站 (小港機場) 1F 行李作業區',
-        workScopeSummary: '夜間航廈管制區地坪刨除打磨、裂縫注入補強、防靜電環氧樹脂底漆與耐磨面漆施作。',
-        leaderKeyFocus: '管制區通行證全員佩掛，夜間零晨5點前必須全面淨空退場，嚴禁任何外來異物(FOD)遺留在滑行道通道！',
-        steps: [
-          {
-            stepNumber: 1,
-            stepName: '航站安檢通關、斷電防護與地坪防塵圍籬',
-            description: '辦理機場管制區夜間通行換證，搭設密閉式防塵抗靜電防護布幕，避免施工粉塵漂散至航儀設備。',
-            assignedRole: '工安駐點人員 / 帶工領班',
-            riskLevel: '中風險',
-            hazardRisks: ['粉塵引發航站煙霧感知器警報', '未授權人員誤闖跑道區'],
-            safetyMeasures: ['吸煙偵測器先行向航警局申請封罩', '布幕四周吸磁固定密封'],
-            inspectionPoints: ['全員佩戴當日工作臨時管制證', '防塵防護達到密閉標準'],
-            tools: ['阻燃抗靜電防塵布', '雷射測距儀', '管制區反光背心', '航站專用通訊對講機']
-          },
-          {
-            stepNumber: 2,
-            stepName: '混凝土無塵研磨整平與裂縫修補',
-            description: '使用重型行星式地坪打磨機搭配工業集塵機進行地表粗化，針對微裂縫灌注環氧樹脂結構膠。',
-            assignedRole: '地坪專業技師 (3名)',
-            riskLevel: '中風險',
-            hazardRisks: ['粉塵吸入呼吸道危害', '高分貝噪音', '機具旋轉刮傷'],
-            safetyMeasures: ['全程佩戴防塵半面罩(P100濾棉)', '重型打磨機配置急停開關'],
-            inspectionPoints: ['素地含水率低於8%', '表面粗糙度達CSP 3級標準'],
-            tools: ['大型行星式地坪研磨機', '防爆工業真空集塵機', '混凝土水分測試儀', '金剛石磨片組']
-          },
-          {
-            stepNumber: 3,
-            stepName: '底中面漆無縫滾塗與消光耐磨面層',
-            description: '雙劑型環氧樹脂精密比例攪拌，依序滾塗導電底漆、石英砂中塗整平層、及耐磨聚氨酯面漆。',
-            assignedRole: '塗裝技師組',
-            riskLevel: '中風險',
-            hazardRisks: ['有機溶劑揮發氣體中毒', '易燃揮發氣體引燃'],
-            safetyMeasures: ['配置防爆型軸流通風排風機', '作業現場配置合格CO2/乾粉滅火器2具'],
-            inspectionPoints: ['漆膜厚度膜厚計量測達標', '固化表面平整無氣泡無刮痕'],
-            tools: ['防爆型軸流排風機(附風管)', '電子磅秤與防爆攪拌機', '消泡滾輪與棘輪釘鞋', '漆膜膜厚計']
-          }
-        ],
-        consolidatedEquipment: [
-          {
-            category: '⚡ 研磨與動力設備',
-            items: [
-              { name: '行星式混凝土研磨機', spec: '三相 380V 重型 (附鑽石磨頭)', qty: '2 台', checked: false },
-              { name: 'HEPA工業級防爆集塵機', spec: '連續脈衝反吹式', qty: '2 台', checked: false },
-              { name: '防爆電動低速攪拌機', spec: '可調速 110V', qty: '2 支', checked: false }
-            ]
-          },
-          {
-            category: '🧪 塗裝施工工具與耗材',
-            items: [
-              { name: '環氧樹脂消泡滾筒組', spec: '9吋 帶刺消泡滾輪', qty: '6 支', checked: false },
-              { name: '耐化學溶劑鏝刀組', spec: '鋸齒鏝刀 (2mm / 3mm)', qty: '4 支', checked: false },
-              { name: '地坪專用刺釘鞋', spec: '金屬短釘鞋底', qty: '4 雙', checked: false }
-            ]
-          },
-          {
-            category: '🦺 呼吸防護與防爆安檢裝備',
-            items: [
-              { name: '3M 雙罐式半面防毒面具', spec: '搭配有機蒸氣濾罐(6001)', qty: '6 組', checked: false },
-              { name: '防爆型通風軸流風機', spec: '含10公尺防靜電伸縮風管', qty: '2 台', checked: false },
-              { name: '機場專用高可視度反光背心', spec: 'EN471 規範', qty: '8 件', checked: false }
-            ]
-          }
-        ]
-      }
-    ];
-
-    let activeProjectId = 'proj-20261024-sunmoon';
-    let currentPlan = projects[0];
-    let currentToolFilter = 'all';
-    const LOCAL_STORAGE_KEY = 'CONSTRUCTION_SMART_PROJECTS_V2';
-
-    /* ==========================================================================
-       初始化
-       ========================================================================== */
-    window.onload = function() {
-      loadSavedProjects();
-      initTabs();
-      initPresetButtons();
-      initVoiceRecognition();
-      initChecklistInteractions();
-      initModal();
-      initSignatureCanvas();
-      initProjectManagement();
-      syncActiveProject();
-      updateApiStatusBadge();
-    };
-
-    /* 更新 API 狀態顯示 */
-    function updateApiStatusBadge() {
-      const statusText = document.getElementById('api-status-text');
-      if (userApiKey && userApiKey.trim().length > 5) {
-        statusText.textContent = "自訂 API 已啟用";
-        statusText.className = "text-amber-400 font-bold";
-      } else {
-        statusText.textContent = "API 設定 (內建)";
-        statusText.className = "text-slate-300";
-      }
-    }
-
-    /* 多案件庫交互與渲染 */
-    function initProjectManagement() {
-      document.getElementById('btn-new-empty-case').addEventListener('click', () => {
-        const today = new Date();
-        const code = `${today.getFullYear()}${(today.getMonth()+1).toString().padStart(2,'0')}${today.getDate().toString().padStart(2,'0')}_新工程交辦`;
-        const newProj = {
-          id: 'proj-' + Date.now(),
-          code: code,
-          projectTitle: "尚未設定工程名稱",
-          constructionDate: `${today.getFullYear()}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getDate().toString().padStart(2,'0')}`,
-          location: "待輸入地點",
-          workScopeSummary: "",
-          leaderKeyFocus: "落實自主品管，安全第一！",
-          steps: [],
-          consolidatedEquipment: []
-        };
-        projects.unshift(newProj);
-        activeProjectId = newProj.id;
-        saveProjectsToLocal();
-        syncActiveProject();
-        showToast("已建立新案件，請前往「1. 負責人口語交辦」輸入細節！");
-        document.querySelector('[data-tab="tab-input"]').click();
-      });
-
-      document.getElementById('btn-quick-switch').addEventListener('click', () => {
-        document.querySelector('[data-tab="tab-projects"]').click();
-      });
-
-      document.getElementById('btn-export-backup').addEventListener('click', exportProjectsJSON);
-      document.getElementById('input-import-file').addEventListener('change', importProjectsJSON);
-    }
-
-    function syncActiveProject() {
-      const found = projects.find(p => p.id === activeProjectId);
-      if (found) {
-        currentPlan = found;
-      } else if (projects.length > 0) {
-        currentPlan = projects[0];
-        activeProjectId = currentPlan.id;
-      }
-
-      document.getElementById('header-active-code').textContent = currentPlan.code || "未命名案件";
-      document.getElementById('header-active-title').textContent = currentPlan.projectTitle ? `（${currentPlan.projectTitle}）` : '';
-
-      renderProjectsList();
-      renderPlan();
-      renderChecklist();
-    }
-
-    function renderProjectsList() {
-      const container = document.getElementById('projects-list-container');
-      const countBadge = document.getElementById('badge-projects-count');
-      countBadge.textContent = projects.length;
-      container.innerHTML = "";
-
-      projects.forEach(proj => {
-        const isActive = proj.id === activeProjectId;
-        const totalTools = (proj.consolidatedEquipment || []).reduce((acc, cat) => acc + (cat.items?.length || 0), 0);
-        const checkedTools = (proj.consolidatedEquipment || []).reduce((acc, cat) => acc + (cat.items?.filter(i => i.checked)?.length || 0), 0);
-        const progressPct = totalTools === 0 ? 0 : Math.round((checkedTools / totalTools) * 100);
-
-        const card = document.createElement('div');
-        card.className = `p-4 sm:p-5 rounded-2xl border transition-all ${
-          isActive 
-            ? 'bg-amber-50/70 border-amber-400 shadow-md ring-2 ring-amber-400/30' 
-            : 'bg-slate-50/90 hover:bg-white border-slate-200 hover:shadow-sm'
-        }`;
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2 border-b border-slate-200/60 pb-3 mb-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold ${isActive ? 'bg-amber-500 text-slate-900' : 'bg-slate-200 text-slate-700'}">
-                  ${proj.code}
-                </span>
-                ${isActive ? '<span class="text-xs bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full">當前作業中</span>' : ''}
-              </div>
-              <h3 class="text-base font-bold text-slate-900 mt-1.5 leading-snug">${proj.projectTitle}</h3>
-              <p class="text-xs text-slate-500 mt-0.5">📍 ${proj.location} • 📅 ${proj.constructionDate}</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs mb-3.5">
-            <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200/60">
-              <span class="text-slate-400 block">工序步數</span>
-              <span class="font-bold text-slate-800">${proj.steps?.length || 0} 個工步拆解</span>
-            </div>
-            <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200/60">
-              <span class="text-slate-400 block">機具點檢進度</span>
-              <span class="font-bold ${progressPct === 100 ? 'text-emerald-600' : 'text-amber-700'}">${checkedTools}/${totalTools} (${progressPct}%)</span>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 flex-wrap">
-            <div class="flex items-center gap-1.5">
-              <button class="btn-load-proj px-3 py-1.5 rounded-lg text-xs font-bold ${isActive ? 'bg-slate-900 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-900'} transition">
-                ${isActive ? '進入檢視與點檢' : '載入此案'}
-              </button>
-              <button class="btn-clone-proj px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-200/80 hover:bg-slate-300 text-slate-700 transition" title="以此案為範本複製">
-                複製範本
-              </button>
-            </div>
-            ${projects.length > 1 ? `
-              <button class="btn-del-proj px-2 py-1 text-xs text-rose-500 hover:text-rose-700 transition">
-                刪除
-              </button>
-            ` : ''}
-          </div>
-        `;
-
-        card.querySelector('.btn-load-proj').addEventListener('click', () => {
-          activeProjectId = proj.id;
-          syncActiveProject();
-          document.querySelector('[data-tab="tab-plan"]').click();
-          showToast(`已載入案件：${proj.code}`);
-        });
-
-        card.querySelector('.btn-clone-proj').addEventListener('click', () => {
-          const cloned = JSON.parse(JSON.stringify(proj));
-          cloned.id = 'proj-' + Date.now();
-          cloned.code = proj.code + '_副本';
-          cloned.projectTitle = proj.projectTitle + ' (複製)';
-          projects.unshift(cloned);
-          activeProjectId = cloned.id;
-          saveProjectsToLocal();
-          syncActiveProject();
-          showToast(`已複製案件並切換至新副本！`);
-        });
-
-        const delBtn = card.querySelector('.btn-del-proj');
-        if (delBtn) {
-          delBtn.addEventListener('click', () => {
-            if (confirm(`確定要刪除「${proj.code}」嗎？`)) {
-              projects = projects.filter(p => p.id !== proj.id);
-              if (activeProjectId === proj.id) {
-                activeProjectId = projects[0]?.id || '';
-              }
-              saveProjectsToLocal();
-              syncActiveProject();
-              showToast(`已刪除案件：${proj.code}`);
-            }
-          });
-        }
-
-        container.appendChild(card);
-      });
-    }
-
-    /* ==========================================================================
-       畫面渲染：施工工序與危害分析 (TAB 2)
-       ========================================================================== */
-    function renderPlan() {
-      const planTitle = document.getElementById('plan-title');
-      const planDate = document.getElementById('plan-date');
-      const planLocation = document.getElementById('plan-location');
-      const planLeaderNote = document.getElementById('plan-leader-note');
-      const stepsContainer = document.getElementById('steps-container');
-      const stepsBadge = document.getElementById('badge-steps-count');
-
-      if (!currentPlan) return;
-
-      planTitle.textContent = currentPlan.projectTitle || "尚未設定專案名稱";
-      planDate.textContent = currentPlan.constructionDate || "待定";
-      planLocation.textContent = currentPlan.location || "待輸入地點";
-      planLeaderNote.textContent = currentPlan.leaderKeyFocus || "現場落實全員工安防護，安全第一！";
-
-      const stepCount = currentPlan.steps?.length || 0;
-      stepsBadge.textContent = stepCount;
-      if (stepCount > 0) {
-        stepsBadge.classList.remove('hidden');
-      } else {
-        stepsBadge.classList.add('hidden');
-      }
-
-      stepsContainer.innerHTML = "";
-
-      if (!currentPlan.steps || currentPlan.steps.length === 0) {
-        stepsContainer.innerHTML = `
-          <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-slate-300">
-            <svg class="w-12 h-12 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-            <p class="font-bold text-slate-500">此案件尚未建立工序工步資料</p>
-            <p class="text-xs text-slate-400 mt-1">請切換至「1. 負責人口語交辦」頁籤輸入或使用語音交辦</p>
-          </div>
-        `;
-        return;
-      }
-
-      currentPlan.steps.forEach((step, idx) => {
-        let riskBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
-        if (step.riskLevel === "高風險") {
-          riskBadgeClass = "bg-rose-100 text-rose-800 border-rose-200";
-        } else if (step.riskLevel === "中風險") {
-          riskBadgeClass = "bg-amber-100 text-amber-800 border-amber-200";
-        }
-
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl p-5 shadow-sm border border-slate-200/90 transition-all hover:shadow-md";
-
-        const hazardsHtml = (step.hazardRisks || []).map(h => `<li class="flex items-center gap-1.5"><span class="text-rose-500 font-bold">⚠️</span><span>${h}</span></li>`).join('');
-        const safetyHtml = (step.safetyMeasures || []).map(s => `<li class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">🛡️</span><span>${s}</span></li>`).join('');
-        const inspectHtml = (step.inspectionPoints || []).map(i => `<li class="flex items-center gap-1.5"><span class="text-blue-600 font-bold">✓</span><span>${i}</span></li>`).join('');
-        const toolsHtml = (step.tools || []).map(t => `<span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 border border-slate-200">${t}</span>`).join('');
-
-        card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
-            <div class="flex items-center space-x-2">
-              <span class="w-7 h-7 rounded-lg bg-slate-900 text-amber-400 font-bold flex items-center justify-center text-xs">
-                ${step.stepNumber || (idx + 1)}
-              </span>
-              <h4 class="font-bold text-slate-900 text-base">${step.stepName}</h4>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs px-2.5 py-1 rounded-md border font-bold ${riskBadgeClass}">
-                ${step.riskLevel || '一般風險'}
-              </span>
-              <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/80">
-                工種：${step.assignedRole || '施工人員'}
-              </span>
-            </div>
-          </div>
-
-          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-            ${step.description}
-          </p>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-3">
-            <div class="bg-rose-50/60 p-3 rounded-xl border border-rose-100">
-              <span class="font-bold text-rose-800 block mb-1.5">潛在危害與安全防護措施：</span>
-              <ul class="space-y-1 text-slate-700">
-                ${hazardsHtml}
-                ${safetyHtml}
-              </ul>
-            </div>
-            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
-              <span class="font-bold text-blue-800 block mb-1.5">員工自主驗收查核重點：</span>
-              <ul class="space-y-1 text-slate-700">
-                ${inspectHtml || '<li class="text-slate-400">標準作業程序自主落實</li>'}
-              </ul>
-            </div>
-          </div>
-
-          <div class="pt-2 border-t border-slate-100">
-            <span class="text-xs font-bold text-slate-500 block mb-1.5">本工步所需機具與器具：</span>
-            <div class="flex flex-wrap gap-1.5">
-              ${toolsHtml || '<span class="text-xs text-slate-400">無特殊工具需求</span>'}
-            </div>
-          </div>
-        `;
-
-        stepsContainer.appendChild(card);
-      });
-    }
-
-    function exportProjectsJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
-      const downloadAnchor = document.createElement('a');
-      const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `施工計畫案件備份_${date}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showToast("已成功匯出全案件備份檔案！");
-    }
-
-    function importProjectsJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        try {
-          const imported = JSON.parse(event.target.result);
-          if (Array.isArray(imported)) {
-            projects = imported;
-            activeProjectId = projects[0]?.id || '';
-            saveProjectsToLocal();
-            syncActiveProject();
-            showToast("備份案件庫已成功匯入！");
-          } else {
-            showToast("檔案格式不符合案件備份格式", "error");
-          }
-        } catch (err) {
-          showToast("解析備份檔案失敗", "error");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function saveProjectsToLocal() {
-      try {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects));
-      } catch (e) {
-        console.warn("無法寫入 LocalStorage", e);
-      }
-    }
-
-    function loadSavedProjects() {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            projects = parsed;
-          }
-        } catch (e) {
-          console.error("載入歷史案件出錯", e);
-        }
-      }
-    }
-
-    function savePlanToLocal() {
-      const idx = projects.findIndex(p => p.id === activeProjectId);
-      if (idx !== -1) {
-        projects[idx] = currentPlan;
-      }
-      saveProjectsToLocal();
-    }
-
-    /* 頁籤切換邏輯 */
-    function initTabs() {
-      const tabButtons = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
-
-      tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const targetTabId = btn.getAttribute('data-tab');
-
-          tabButtons.forEach(b => {
-            b.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
-            b.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
-          });
-          btn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
-          btn.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
-
-          tabContents.forEach(content => {
-            if (content.id === targetTabId) {
-              content.classList.remove('hidden');
-              content.classList.add('block');
-            } else {
-              content.classList.add('hidden');
-              content.classList.remove('block');
-            }
-          });
-
-          if (targetTabId === 'tab-checklist') {
-            resizeSignaturePad();
-          }
-        });
-      });
-    }
-
-    /* 快捷範本按鈕與表單控制 */
-    function initPresetButtons() {
-      const presets = document.querySelectorAll('.btn-preset');
-      const textarea = document.getElementById('input-prompt');
-      presets.forEach(preset => {
-        preset.addEventListener('click', () => {
-          textarea.value = preset.getAttribute('data-prompt');
-          showToast("已載入常見情境範本，可直接點選「開始智慧解構」！");
-        });
-      });
-
-      document.getElementById('btn-clear').addEventListener('click', () => {
-        textarea.value = "";
-      });
-
-      document.getElementById('btn-generate').addEventListener('click', handleGenerate);
-      document.getElementById('btn-export-print').addEventListener('click', () => window.print());
-      document.getElementById('btn-quick-line').addEventListener('click', copyLineFormat);
-    }
-
-    /* 平板語音識別 (Web Speech API) */
-    function initVoiceRecognition() {
-      const voiceBtn = document.getElementById('btn-voice-input');
-      const voiceIcon = document.getElementById('voice-icon');
-      const voiceText = document.getElementById('voice-btn-text');
-      const textarea = document.getElementById('input-prompt');
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        voiceBtn.title = "目前瀏覽器暫不支援語音即時轉文字，可直接使用平板鍵盤麥克風";
-        return;
-      }
-
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'zh-TW';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      let isRecording = false;
-
-      voiceBtn.addEventListener('click', () => {
-        if (!isRecording) {
-          try {
-            recognition.start();
-            isRecording = true;
-            voiceIcon.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
-            voiceText.textContent = "聆聽中，請說話...";
-            showToast("正在聆聽...請直接口述工程交辦內容");
-          } catch (e) {
-            console.warn(e);
-          }
-        } else {
-          recognition.stop();
-        }
-      });
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        textarea.value = (textarea.value ? textarea.value + " " : "") + transcript;
-        showToast("語音辨識完成！");
-      };
-
-      recognition.onend = () => {
-        isRecording = false;
-        voiceIcon.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-        voiceText.textContent = "平板語音輸入";
-      };
-
-      recognition.onerror = () => {
-        isRecording = false;
-        voiceIcon.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-        voiceText.textContent = "平板語音輸入";
-      };
-    }
-
-    /* ==========================================================================
-       生成計畫邏輯與 API 串接
-       ========================================================================== */
-    async function handleGenerate() {
-      const promptText = document.getElementById('input-prompt').value.trim();
-      if (!promptText) {
-        showToast("請先輸入工程交辦資訊！", "error");
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        let generatedData = null;
-        if (userApiKey && userApiKey.trim().length > 10) {
-          generatedData = await callGeminiStructuredApi(promptText);
-        }
-
-        if (!generatedData) {
-          // 若無 API Key 或連網限制，調用工程智慧離線解構器
-          generatedData = generateLocalPlan(promptText);
-        }
-
-        const dateClean = (generatedData.constructionDate || "").replace(/\D/g, '') || "20261024";
-        const shortTitle = (generatedData.projectTitle || "工程案").slice(0, 8);
-        const autoCode = `${dateClean}_${shortTitle}`;
-
-        currentPlan = {
-          id: currentPlan.id || ('proj-' + Date.now()),
-          code: currentPlan.code && !currentPlan.code.includes('新工程交辦') ? currentPlan.code : autoCode,
-          ...generatedData
-        };
-
-        const idx = projects.findIndex(p => p.id === activeProjectId);
-        if (idx !== -1) {
-          projects[idx] = currentPlan;
-        } else {
-          projects.unshift(currentPlan);
-        }
-
-        saveProjectsToLocal();
-        syncActiveProject();
-        showToast("🎉 施工計畫與平板清點表生成完成，已存入案件庫！");
-        document.querySelector('[data-tab="tab-plan"]').click();
-
-      } catch (error) {
-        console.error("生成施工計畫失敗：", error);
-        showToast(`API 調用異常 (${error.message})，啟用離線工程智慧解析...`, "error");
-        const fallbackData = generateLocalPlan(promptText);
-        currentPlan = { ...currentPlan, ...fallbackData };
-        savePlanToLocal();
-        syncActiveProject();
-        document.querySelector('[data-tab="tab-plan"]').click();
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function setLoading(isLoading) {
-      const btn = document.getElementById('btn-generate');
-      const spinner = document.getElementById('generate-spinner');
-      const text = document.getElementById('generate-text');
-
-      if (isLoading) {
-        btn.disabled = true;
-        btn.classList.add('opacity-75', 'cursor-not-allowed');
-        spinner.classList.remove('hidden');
-        text.textContent = "AI 正在解構工法與風險中...";
-      } else {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75', 'cursor-not-allowed');
-        spinner.classList.add('hidden');
-        text.textContent = "開始智慧解構並生成計畫表";
-      }
-    }
-
-    /* 調用 Gemini 結構化 API */
-    async function callGeminiStructuredApi(userInput) {
-      const cleanKey = (userApiKey || "").trim();
-      const systemInstruction = `
-你是一位擁有25年現場施工、營造工程管理、職業安全衛生（勞檢標準）頂尖專家。
-使用者是一位工程團隊負責人（老闆），他會用口語化的語音或文字進行工程派工交代。
-你的任務是將負責人的語意做高水準的專業結構化分解：
-1. 提煉施工日期、案場名稱地點、負責人核心品質紅線叮嚀。
-2. 拆解為標準工序工步（Steps），每一工步需列出：工法說明、建議負責人員工種、危險等級（高風險/中風險/低風險）、潛在職業危害（墜落、感電、物體飛落、中毒等）、法規勞安防護對策、員工驗收查核重點、以及該工序需要的工具與設備。
-3. 產生全案機具設備物料的「分類彙總清點表」（Consolidated Equipment），分類包含：重型與動力機具、手工具與五金、量測檢驗儀器、個人安全防護具(PPE)。
-所有內容請使用繁體中文（台灣工程術語）。`;
-
-      const responseSchema = {
-        type: "OBJECT",
-        properties: {
-          projectTitle: { type: "STRING" },
-          constructionDate: { type: "STRING" },
-          location: { type: "STRING" },
-          workScopeSummary: { type: "STRING" },
-          leaderKeyFocus: { type: "STRING" },
-          steps: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                stepNumber: { type: "NUMBER" },
-                stepName: { type: "STRING" },
-                description: { type: "STRING" },
-                assignedRole: { type: "STRING" },
-                riskLevel: { type: "STRING", enum: ["高風險", "中風險", "低風險"] },
-                hazardRisks: { type: "ARRAY", items: { type: "STRING" } },
-                safetyMeasures: { type: "ARRAY", items: { type: "STRING" } },
-                inspectionPoints: { type: "ARRAY", items: { type: "STRING" } },
-                tools: { type: "ARRAY", items: { type: "STRING" } }
-              },
-              required: ["stepNumber", "stepName", "description", "assignedRole", "riskLevel", "hazardRisks", "safetyMeasures", "inspectionPoints", "tools"]
-            }
-          },
-          consolidatedEquipment: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                category: { type: "STRING" },
-                items: {
-                  type: "ARRAY",
-                  items: {
-                    type: "OBJECT",
-                    properties: {
-                      name: { type: "STRING" },
-                      spec: { type: "STRING" },
-                      qty: { type: "STRING" },
-                      checked: { type: "BOOLEAN" }
-                    },
-                    required: ["name", "spec", "qty", "checked"]
-                  }
-                }
-              },
-              required: ["category", "items"]
-            }
-          }
-        },
-        required: ["projectTitle", "constructionDate", "location", "workScopeSummary", "leaderKeyFocus", "steps", "consolidatedEquipment"]
-      };
-
-      const payload = {
-        contents: [{ parts: [{ text: userInput }] }],
-        systemInstruction: { parts: [{ text: systemInstruction }] },
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: responseSchema,
-          temperature: 0.2
-        }
-      };
-
-      const modelCandidates = ['gemini-2.5-flash', 'gemini-1.5-flash'];
-      let lastError = null;
-
-      for (const model of modelCandidates) {
-        try {
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              return JSON.parse(text);
-            }
-          } else {
-            const errData = await response.json().catch(() => ({}));
-            lastError = new Error(errData.error?.message || `HTTP ${response.status}`);
-            if (response.status === 400 || response.status === 403) {
-              throw lastError;
-            }
-          }
-        } catch (e) {
-          lastError = e;
-          if (e.message && (e.message.includes('403') || e.message.includes('400'))) {
-            throw e;
-          }
-        }
-      }
-
-      throw lastError || new Error("無法連接 Gemini API 伺服器");
-    }
-
-    /* 離線工程智慧解析器（當離線或無 API 時無縫運作） */
-    function generateLocalPlan(rawText) {
-      const now = new Date();
-      const dateMatch = rawText.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/);
-      const dateStr = dateMatch ? dateMatch[0] : `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
-
-      let loc = "施工作業現場";
-      if (rawText.includes("在")) {
-        const afterAt = rawText.split("在")[1];
-        loc = afterAt.split(/進行|施作|做|的|，|。/)[0].trim().slice(0, 18);
-      }
-
-      return {
-        projectTitle: "專案施工計畫：" + (loc !== "施工作業現場" ? loc : "") + rawText.slice(0, 12),
-        constructionDate: dateStr,
-        location: loc,
-        workScopeSummary: rawText,
-        leaderKeyFocus: "現場落實全員工安防護，防墜與感電為首要紅線，嚴格自主檢驗品質！",
-        steps: [
-          {
-            stepNumber: 1,
-            stepName: "現場防護鋪設、環境斷電與危害告知",
-            description: "進行作業區地坪防塵鋪設、確認施工範圍電源開關箱掛牌上鎖(LOTO)，召集全員進行危害告知。",
-            assignedRole: "工務主管 / 工安員",
-            riskLevel: "高風險",
-            hazardRisks: ["誤送電導致人員感電", "進出人員踩踏絆倒"],
-            safetyMeasures: ["確認三用電表測電無電壓", "拉設警示黃色警戒帶"],
-            inspectionPoints: ["電源確實斷開並上鎖標示", "保護板固定平整無翹起"],
-            tools: ["三用電表", "絕緣上鎖掛牌組", "PVC地坪保護板", "警示帶"]
-          },
-          {
-            stepNumber: 2,
-            stepName: "主體工項施作與工法組裝作業",
-            description: "依主管交辦指示進行破除、組裝或管路移位施工，隨時保持通道通暢與廢料清理。",
-            assignedRole: "主修技師與助手",
-            riskLevel: "中風險",
-            hazardRisks: ["粉塵飛濺刺傷眼睛", "手工具震動與噪音"],
-            safetyMeasures: ["全程配戴抗衝擊護目鏡", "配戴防塵口罩與防音耳塞"],
-            inspectionPoints: ["管路接頭牢固無漏水漏氣", "固定支撐架間距小於1.5米"],
-            tools: ["手提砂輪機", "充電式震動電鑽", "水平尺", "防塵護目鏡"]
-          },
-          {
-            stepNumber: 3,
-            stepName: "完工自主查驗、試壓試水與現場清理",
-            description: "進行管路或結構查驗、清理施工廢料並將作業區域復原，回報主管。",
-            assignedRole: "領班與作業員",
-            riskLevel: "低風險",
-            hazardRisks: ["廢棄物刺傷手部", "濕滑地面跌倒"],
-            safetyMeasures: ["穿著防穿刺安全鞋", "佩戴防割手套"],
-            inspectionPoints: ["現場垃圾廢料全數清空", "驗收功能一切正常"],
-            tools: ["工業吸塵器", "垃圾袋", "清潔掃具", "自主檢查表"]
-          }
-        ],
-        consolidatedEquipment: [
-          {
-            category: "⚡ 動力設備與電動工具",
-            items: [
-              { name: "手提砂輪機 / 切割機", spec: "110V 附防護罩", qty: "2 台", checked: false },
-              { name: "充電式震動電鑽組", spec: "18V 附鑽尾組", qty: "2 組", checked: false }
-            ]
-          },
-          {
-            category: "🦺 勞安與個人防護裝備 (PPE)",
-            items: [
-              { name: "工程安全帽 (附下巴帶)", spec: "CNS 認證合格", qty: "4 頂", checked: false },
-              { name: "高可視度反光背心", spec: "透氣反光網狀", qty: "4 件", checked: false },
-              { name: "防穿刺防砸安全工作鞋", spec: "鋼頭防刺底", qty: "4 雙", checked: false }
-            ]
-          },
-          {
-            category: "🔧 手工具與五金配件",
-            items: [
-              { name: "水平尺與捲尺組", spec: "5M 捲尺 / 磁性水平尺", qty: "2 組", checked: false },
-              { name: "活動開口扳手與棘輪組", spec: "標準多功能組", qty: "2 組", checked: false }
-            ]
-          }
-        ]
-      };
-    }
-
-    /* ==========================================================================
-       API KEY Modal 視窗操作與診斷檢測
-       ========================================================================== */
-    function initModal() {
-      const modal = document.getElementById('modal-api-config');
-      const btnOpen = document.getElementById('btn-api-config');
-      const btnClose = document.getElementById('btn-close-modal');
-      const btnSave = document.getElementById('btn-save-key');
-      const btnClear = document.getElementById('btn-clear-key');
-      const inputKey = document.getElementById('input-api-key');
-      const btnTest = document.getElementById('btn-test-key');
-      const testSpinner = document.getElementById('test-spinner');
-      const testBtnText = document.getElementById('test-btn-text');
-      const resultBox = document.getElementById('api-test-result');
-      const btnToggle = document.getElementById('btn-toggle-key-visibility');
-
-      btnOpen.addEventListener('click', () => {
-        inputKey.value = userApiKey || "";
-        resultBox.classList.add('hidden');
-        resultBox.innerHTML = "";
-        modal.classList.remove('hidden');
-      });
-
-      btnClose.addEventListener('click', () => modal.classList.add('hidden'));
-
-      btnToggle.addEventListener('click', () => {
-        if (inputKey.type === 'password') {
-          inputKey.type = 'text';
-          btnToggle.textContent = '🔒 隱藏明碼';
-        } else {
-          inputKey.type = 'password';
-          btnToggle.textContent = '👁️ 顯示明碼';
-        }
-      });
-
-      btnClear.addEventListener('click', () => {
-        inputKey.value = "";
-        userApiKey = "";
-        localStorage.removeItem('GEMINI_API_KEY');
-        updateApiStatusBadge();
-        resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-slate-100 text-slate-700 border border-slate-300";
-        resultBox.innerHTML = "ℹ️ 已清除自訂金鑰，系統將恢復為離線工程智慧解析模式。";
-        resultBox.classList.remove('hidden');
-        showToast("已清除 API Key！");
-      });
-
-      btnSave.addEventListener('click', () => {
-        userApiKey = inputKey.value.trim();
-        localStorage.setItem('GEMINI_API_KEY', userApiKey);
-        updateApiStatusBadge();
-        modal.classList.add('hidden');
-        showToast("API Key 設定已儲存！");
-      });
-
-      // ⚡ 測試連線與功能檢測按鈕
-      btnTest.addEventListener('click', async () => {
-        const testKey = inputKey.value.trim();
-        if (!testKey) {
-          resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200";
-          resultBox.innerHTML = "❌ <strong>請先輸入 API Key！</strong><br>您尚未貼入金鑰，請前往 Google AI Studio 複製以 <code>AIzaSy...</code> 開頭的金鑰。";
-          resultBox.classList.remove('hidden');
-          return;
-        }
-
-        btnTest.disabled = true;
-        testSpinner.classList.remove('hidden');
-        testBtnText.textContent = "正在測試連線中...";
-        resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-amber-50 text-amber-900 border border-amber-200 flex items-center gap-2";
-        resultBox.innerHTML = `<span>⏳ 正在向 Google 伺服器驗證金鑰響應...</span>`;
-        resultBox.classList.remove('hidden');
-
-        try {
-          const testModels = ['gemini-2.5-flash', 'gemini-1.5-flash'];
-          let testSuccess = false;
-          let reply = "";
-          let lastErrCode = 0;
-          let lastErrMessage = "";
-
-          for (const model of testModels) {
-            const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(testKey)}`;
-            const testPayload = {
-              contents: [{ parts: [{ text: "工程連線檢測，請簡短回應：OK" }] }]
-            };
-
-            const response = await fetch(testUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(testPayload)
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "連線正常";
-              testSuccess = true;
-              break;
-            } else {
-              lastErrCode = response.status;
-              try {
-                const errJson = await response.json();
-                lastErrMessage = errJson.error?.message || "";
-              } catch (e) {}
-              if (response.status === 400 || response.status === 403) break;
-            }
-          }
-
-          if (testSuccess) {
-            resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-emerald-50 text-emerald-900 border border-emerald-300";
-            resultBox.innerHTML = `
-              <div class="flex items-start gap-2">
-                <span class="text-base">✅</span>
-                <div>
-                  <strong class="font-bold text-emerald-800">API 連線驗證成功！</strong>
-                  <p class="mt-1 text-emerald-700">Google Gemini 伺服器連線正常，可立即生成施工計畫與拆解機具清單。</p>
-                  <p class="text-[11px] text-emerald-600 mt-0.5">伺服器回應：${reply.trim()}</p>
-                </div>
-              </div>`;
-            userApiKey = testKey;
-            localStorage.setItem('GEMINI_API_KEY', userApiKey);
-            updateApiStatusBadge();
-          } else {
-            let diagnosticAdvice = "";
-            if (lastErrCode === 400) {
-              diagnosticAdvice = "金鑰格式不正確（可能有漏複製字元或包含了前後空白），請點選上方「顯示明碼」檢查金鑰。";
-            } else if (lastErrCode === 403) {
-              diagnosticAdvice = "<strong>權限被拒 (API_KEY_INVALID / Referrer Blocked)：</strong><br>1. 金鑰輸入錯誤或專案已被刪除。<br>2. <strong>最常見原因：</strong>若在 Google Cloud Console 設定了「網站網域限制」，請確認允許清單中是否已完整加入 <code>https://ollintsai.github.io/*</code>。";
-            } else if (lastErrCode === 404) {
-              diagnosticAdvice = "模型端點暫不可用或地區受限。";
-            } else if (lastErrCode === 429) {
-              diagnosticAdvice = "免費呼叫額度暫時超限（每分鐘超過 15 次），請稍候 1 分鐘後再試。";
-            } else {
-              diagnosticAdvice = lastErrMessage || "網路傳輸被封鎖或伺服器異常。";
-            }
-
-            resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-300";
-            resultBox.innerHTML = `
-              <div class="flex items-start gap-2">
-                <span class="text-base">❌</span>
-                <div>
-                  <strong class="font-bold text-rose-800">連線失敗 (錯誤代碼 HTTP ${lastErrCode})</strong>
-                  <div class="mt-1 text-rose-700 leading-relaxed">${diagnosticAdvice}</div>
-                  ${lastErrMessage ? `<p class="mt-1 text-[11px] text-rose-500 font-mono">Google 錯誤原文：${lastErrMessage}</p>` : ''}
-                </div>
-              </div>`;
-          }
-        } catch (netErr) {
-          resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-300";
-          resultBox.innerHTML = `
-            <div class="flex items-start gap-2">
-              <span class="text-base">⚠️</span>
-              <div>
-                <strong class="font-bold text-rose-800">網路傳輸或跨域阻擋 (Fetch Error)</strong>
-                <p class="mt-1 text-rose-700">無法連線至 Google API 伺服器，請檢查您的瀏覽器是否有安裝 AdBlock 等擴充插件，或確認本機網路連線。</p>
-              </div>
-            </div>`;
-        } finally {
-          btnTest.disabled = false;
-          testSpinner.classList.add('hidden');
-          testBtnText.textContent = "⚡ 測試連線與檢測";
-        }
-      });
-    }
-
-    /* ==========================================================================
-       畫面渲染：平板機具清點點檢表 (TAB 3)
-       ========================================================================== */
-    function renderChecklist() {
-      const container = document.getElementById('equipment-categories-container');
-      container.innerHTML = "";
-
-      if (!currentPlan.consolidatedEquipment || currentPlan.consolidatedEquipment.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-slate-300">目前尚無清點器具資料。</div>`;
-        updateChecklistProgress();
-        return;
-      }
-
-      currentPlan.consolidatedEquipment.forEach((cat, catIdx) => {
-        const catCard = document.createElement('div');
-        catCard.className = "bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/90";
-
-        catCard.innerHTML = `
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-            <div class="flex items-center space-x-2">
-              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-              <h3 class="font-bold text-slate-900 text-base">${cat.category}</h3>
-            </div>
-            <span class="text-xs text-slate-400 font-semibold">${cat.items?.length || 0} 項物件</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5" id="cat-items-${catIdx}">
-          </div>
-        `;
-
-        container.appendChild(catCard);
-
-        const itemsContainer = catCard.querySelector(`#cat-items-${catIdx}`);
-
-        (cat.items || []).forEach((item, itemIdx) => {
-          const shouldHide = (currentToolFilter === 'pending' && item.checked);
-
-          const itemBtn = document.createElement('div');
-          itemBtn.className = `p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between touch-target ${
-            item.checked
-              ? 'bg-emerald-50/80 border-emerald-300 text-emerald-900 shadow-sm'
-              : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
-          } ${shouldHide ? 'hidden' : ''}`;
-
-          itemBtn.innerHTML = `
-            <div class="flex items-center space-x-3 overflow-hidden">
-              <div class="w-6 h-6 rounded-lg flex items-center justify-center border transition-all ${
-                item.checked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
-              }">
-                <svg class="w-4 h-4 ${item.checked ? 'block' : 'hidden'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
-              <div class="truncate">
-                <span class="text-sm font-bold block truncate ${item.checked ? 'line-through text-slate-500' : ''}">${item.name}</span>
-                <span class="text-xs text-slate-500 block truncate">${item.spec || '標準配備'}</span>
-              </div>
-            </div>
-            <div class="text-right flex-shrink-0 ml-2">
-              <span class="text-xs font-black px-2 py-1 rounded bg-white/80 border border-slate-200/80 text-slate-700">${item.qty}</span>
-            </div>
-          `;
-
-          itemBtn.addEventListener('click', () => {
-            item.checked = !item.checked;
-            savePlanToLocal();
-            renderChecklist();
-            if (navigator.vibrate) navigator.vibrate(25);
-          });
-
-          itemsContainer.appendChild(itemBtn);
-        });
-      });
-
-      updateChecklistProgress();
-    }
-
-    function updateChecklistProgress() {
-      if (!currentPlan.consolidatedEquipment) return;
-
-      let total = 0;
-      let checkedCount = 0;
-
-      currentPlan.consolidatedEquipment.forEach(cat => {
-        (cat.items || []).forEach(item => {
-          total++;
-          if (item.checked) checkedCount++;
-        });
-      });
-
-      const percentage = total === 0 ? 0 : Math.round((checkedCount / total) * 100);
-
-      const progressBar = document.getElementById('checklist-progress-bar');
-      const progressText = document.getElementById('checklist-progress-text');
-      const statusBadge = document.getElementById('checklist-status-badge');
-      const navBadge = document.getElementById('badge-tool-progress');
-
-      progressBar.style.width = percentage + "%";
-      progressText.textContent = `已清點：${checkedCount} / ${total} 件 (${percentage}%)`;
-      navBadge.textContent = `${checkedCount}/${total}`;
-      navBadge.classList.remove('hidden');
-
-      if (percentage === 100 && total > 0) {
-        statusBadge.textContent = "全數點妥！可發車出工";
-        statusBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800";
-      } else if (checkedCount > 0) {
-        statusBadge.textContent = `點檢中 (${percentage}%)`;
-        statusBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800";
-      } else {
-        statusBadge.textContent = "尚未開始裝載清點";
-        statusBadge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700";
-      }
-    }
-
-    function initChecklistInteractions() {
-      const btnAll = document.getElementById('btn-filter-all');
-      const btnPending = document.getElementById('btn-filter-pending');
-      const btnReset = document.getElementById('btn-reset-check');
-
-      btnAll.addEventListener('click', () => {
-        currentToolFilter = 'all';
-        btnAll.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition";
-        btnPending.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-        renderChecklist();
-      });
-
-      btnPending.addEventListener('click', () => {
-        currentToolFilter = 'pending';
-        btnPending.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white transition";
-        btnAll.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-        renderChecklist();
-      });
-
-      btnReset.addEventListener('click', () => {
-        if (!currentPlan.consolidatedEquipment) return;
-        currentPlan.consolidatedEquipment.forEach(cat => {
-          (cat.items || []).forEach(i => i.checked = false);
-        });
-        savePlanToLocal();
-        renderChecklist();
-        showToast("已重置所有清點狀態！");
-      });
-    }
-
-    /* ==========================================================================
-       平板手寫數位簽名板 (Canvas)
-       ========================================================================== */
-    let canvas, ctx;
-    let isDrawing = false;
-
-    function initSignatureCanvas() {
-      canvas = document.getElementById('signature-pad');
-      ctx = canvas.getContext('2d');
-
-      resizeSignaturePad();
-      window.addEventListener('resize', resizeSignaturePad);
-
-      function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-          x: clientX - rect.left,
-          y: clientY - rect.top
-        };
-      }
-
-      function startDraw(e) {
-        isDrawing = true;
-        const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-      }
-
-      function moveDraw(e) {
-        if (!isDrawing) return;
-        const pos = getPos(e);
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-      }
-
-      function endDraw() {
-        isDrawing = false;
-      }
-
-      canvas.addEventListener('mousedown', startDraw);
-      canvas.addEventListener('mousemove', moveDraw);
-      window.addEventListener('mouseup', endDraw);
-
-      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); }, { passive: false });
-      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveDraw(e); }, { passive: false });
-      window.addEventListener('touchend', endDraw);
-
-      document.getElementById('btn-clear-signature').addEventListener('click', () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      });
-    }
-
-    function resizeSignaturePad() {
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-      }
-    }
-
-    /* ==========================================================================
-       LINE 格式複製
-       ========================================================================== */
-    function copyLineFormat() {
-      if (!currentPlan.steps || currentPlan.steps.length === 0) {
-        showToast("尚未生成計畫，無法產生通知！", "error");
-        return;
-      }
-
-      let text = `📢【今日施工交辦重點通知】\n`;
-      text += `📌 工程名稱：${currentPlan.projectTitle}\n`;
-      text += `📅 施工日期：${currentPlan.constructionDate}\n`;
-      text += `📍 施工案場：${currentPlan.location}\n`;
-      text += `🚨 負責人紅線提醒：${currentPlan.leaderKeyFocus}\n\n`;
-      text += `🛠️ 工序與安全查核：\n`;
-
-      currentPlan.steps.forEach(s => {
-        text += `${s.stepNumber}. ${s.stepName} [${s.riskLevel}]\n`;
-        text += `   - 查驗要點：${(s.inspectionPoints || []).join('、')}\n`;
-      });
-
-      text += `\n📦 機具點檢表請領班以現場平板逐一核對上車，安全第一！`;
-
-      copyToClipboard(text);
-      showToast("已複製 LINE 工務群格式！可直接在 LINE 貼上通知全員。");
-    }
-
-    function copyToClipboard(text) {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand('copy');
-      } catch (err) {
-        console.error('複製失敗', err);
-      }
-      document.body.removeChild(textarea);
-    }
-
-    /* Toast 提示元件 */
-    function showToast(message, type = "success") {
-      const toast = document.getElementById('toast');
-      const msgEl = document.getElementById('toast-message');
-      const iconEl = document.getElementById('toast-icon');
-
-      msgEl.textContent = message;
-      if (type === "error") {
-        iconEl.textContent = "✕";
-        iconEl.className = "text-rose-400 font-bold";
-      } else {
-        iconEl.textContent = "✓";
-        iconEl.className = "text-amber-400 font-bold";
-      }
-
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-        toast.classList.remove('translate-y-0', 'opacity-100');
-      }, 3500);
-    }
-  </script>
-</body>
-</html>
+  <!-- 底部列印專用隱藏區域 -->
+  <div id="printable-area" class="hidden"></div>
+
+  <!-- API 設定與診斷彈出視窗 -->
+  <div id="modal-api" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start">
+        <h3 class
