@@ -79,7 +79,7 @@
       <div class="flex items-center space-x-2">
         <button id="btn-open-api-modal" class="touch-target flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 transition">
           <span id="api-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-          <span id="api-status-text">API 設定</span>
+          <span id="api-status-text">API 設定與深度診斷</span>
         </button>
       </div>
     </div>
@@ -88,7 +88,7 @@
   <!-- 主內容容器 -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
 
-    <!-- 頁籤切換欄（專為平板觸控加大） -->
+    <!-- 頁籤切換欄 -->
     <nav class="flex border-b border-slate-300 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto" aria-label="Tabs">
       <button class="nav-tab active-tab touch-target px-5 py-3 font-bold text-sm text-brand-600 border-b-4 border-brand-600 whitespace-nowrap flex items-center gap-2" data-target="tab-input">
         <span>💬 1. 負責人口語交辦</span>
@@ -110,11 +110,11 @@
       <div class="border-l-4 border-brand-600 pl-4 py-1">
         <h2 class="text-lg font-bold text-slate-900">以自然語言交代案場任務</h2>
         <p class="text-sm text-slate-600 mt-1">
-          如同平時口頭交辦工作一樣，輸入日期、地點、施工項目、大概工序或需帶工具。AI 會自動為您推導出完整的安全評估與點檢表。
+          輸入施工日期、地點、施工順序或大概工具，系統將自動演算並拆解完整工安防護計畫與點檢清單。
         </p>
       </div>
 
-      <!-- 快速範本標籤 -->
+      <!-- 快速範本 -->
       <div class="flex flex-wrap items-center gap-2 pt-1">
         <span class="text-xs font-semibold text-slate-500">常見情境範本：</span>
         <button class="btn-preset text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition">
@@ -128,19 +128,16 @@
         </button>
       </div>
 
-      <!-- 自然語言文字框與語音輸入 -->
+      <!-- 輸入框 -->
       <div class="relative">
         <textarea id="input-prompt" rows="5" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：下週二 10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。請預備 50 噸吊車、吊車腳座墊板、高空防墜雙掛勾、扭力扳手與防墜安全帶..."></textarea>
-        <button id="btn-voice-input" title="口用語音輸入" class="absolute right-3 bottom-3 p-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center justify-center touch-target">
-          🎙️ <span class="text-xs ml-1 font-medium hidden sm:inline">語音輸入</span>
-        </button>
       </div>
 
-      <!-- 操作按鈕列 -->
+      <!-- 操作按鈕 -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
         <span class="text-xs text-slate-500 flex items-center gap-1.5">
           <span class="inline-block w-2 h-2 rounded-full bg-safety-green"></span>
-          支援離線智慧解析與雲端 Gemini 雙模式
+          支援離線智慧解析與雲端 Gemini 雙引擎
         </span>
         <div class="flex items-center gap-3">
           <button id="btn-clear-input" class="touch-target px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition">
@@ -162,8 +159,6 @@
           <h2 class="text-xl font-black text-slate-900 mt-1" id="label-plan-title">案場名稱：日月潭鋼構吊裝與防墜組裝工程</h2>
           <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
             <span>📍 施工地點：<span id="label-plan-location">南投縣日月潭遊客中心後棟</span></span>
-            <span>•</span>
-            <span>👷 負責人交辦事項</span>
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -176,30 +171,24 @@
         </div>
       </div>
 
-      <!-- 總體安全紅線宣導 -->
+      <!-- 總體安全紅線 -->
       <div class="bg-amber-50 border-l-4 border-safety-yellow p-4 rounded-r-xl">
         <h4 class="text-sm font-black text-amber-900 flex items-center gap-1.5">
           ⚠️ 負責人嚴正宣示・案場安全紅線（不可退讓底線）
         </h4>
-        <p class="text-xs text-amber-800 mt-1 leading-relaxed" id="label-plan-redlines">
-          1. 高空作業未滿 100% 雙鉤防墜禁止施工。 2. 吊掛半徑下方嚴禁人員站立。 3. 吊車腳座必須實鋪厚鋼板。
-        </p>
+        <p class="text-xs text-amber-800 mt-1 leading-relaxed" id="label-plan-redlines"></p>
       </div>
 
       <!-- 工序與危害卡片容器 -->
-      <div id="steps-container" class="flex flex-col gap-4">
-        <!-- 卡片將由 JS 動態生成 -->
-      </div>
+      <div id="steps-container" class="flex flex-col gap-4"></div>
     </section>
 
-    <!-- 頁籤三：機具彙整與平板現場清點 -->
+    <!-- 頁籤三：機具平板點檢表 -->
     <section id="tab-checklist" class="tab-content hidden bg-white p-5 sm:p-6 rounded-b-xl shadow-sm flex flex-col gap-6">
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h2 class="text-xl font-black text-slate-900">機具物料裝車・現場出退庫點檢表</h2>
-          <p class="text-xs text-slate-500 mt-1">
-            由所有工步自動彙總，點擊項目即完成清點，支援震動反饋與離線保存。
-          </p>
+          <p class="text-xs text-slate-500 mt-1">平板觸控優化設計，支援點擊震動反饋與離線保存。</p>
         </div>
         <div class="flex items-center gap-2">
           <button id="btn-reset-checklist" class="touch-target text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg border border-slate-300 transition">
@@ -208,7 +197,7 @@
         </div>
       </div>
 
-      <!-- 點檢進度總覽面板 -->
+      <!-- 點檢進度總覽 -->
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
         <div class="flex justify-between items-center text-sm font-bold text-slate-700">
           <span>清點完成率</span>
@@ -219,12 +208,10 @@
         </div>
       </div>
 
-      <!-- 工具分類彙整清單（按類別切分） -->
-      <div id="checklist-container" class="flex flex-col gap-5">
-        <!-- 分類點檢列表由 JS 動態生成 -->
-      </div>
+      <!-- 分類清單 -->
+      <div id="checklist-container" class="flex flex-col gap-5"></div>
 
-      <!-- 平板手寫電子簽章板 -->
+      <!-- 電子簽名板 -->
       <div class="mt-4 border-t border-slate-200 pt-5 flex flex-col gap-3">
         <div class="flex justify-between items-center">
           <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -248,9 +235,7 @@
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h2 class="text-xl font-black text-slate-900">歷史案件庫・施工經驗資料庫</h2>
-          <p class="text-xs text-slate-500 mt-1">
-            每個案場都是寶貴的工程資產，支援即時切換案場、重複套用範本與本機資料備份。
-          </p>
+          <p class="text-xs text-slate-500 mt-1">案件獨立保存，支援重複套用範本與本機資料備份。</p>
         </div>
         <div class="flex items-center gap-2">
           <button id="btn-export-json" class="touch-target text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg border border-slate-300 transition">
@@ -259,19 +244,1002 @@
         </div>
       </div>
 
-      <!-- 案件列表 -->
-      <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- 卡片由 JS 動態生成 -->
-      </div>
+      <!-- 案件列表容器 -->
+      <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
   </main>
 
-  <!-- 底部列印專用隱藏區域 -->
   <div id="printable-area" class="hidden"></div>
 
-  <!-- API 設定與診斷彈出視窗 -->
-  <div id="modal-api" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-start">
-        <h3 class
+  <!-- API 設定與深度排查視窗 -->
+  <div id="modal-api" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            🔑 Gemini API 密鑰設置與深度診斷
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">金鑰僅存於瀏覽器本機 LocalStorage，絕不上傳第三方伺服器。</p>
+        </div>
+        <button id="btn-close-api-modal" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none p-1">✕</button>
+      </div>
+
+      <!-- 金鑰輸入列 -->
+      <div class="flex flex-col gap-1.5">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-bold text-slate-700">API Key (支援 AQ. 與 AIza 開頭)：</label>
+          <button id="btn-toggle-key-visible" class="text-[11px] text-slate-500 hover:text-slate-800">👁️ 顯示明碼</button>
+        </div>
+        <input type="password" id="input-api-key" class="w-full text-xs sm:text-sm font-mono p-3 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none" placeholder="AQ.Ab8RN6... 或 AIzaSy...">
+      </div>
+
+      <!-- 模型選擇／自動偵測結果列 -->
+      <div class="flex flex-col gap-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-bold text-slate-700">使用的生成模型 (自動偵測或手動切換)：</label>
+          <span id="model-scan-status" class="text-[11px] font-semibold text-slate-500">待檢測</span>
+        </div>
+        <div class="flex gap-2">
+          <select id="select-active-model" class="flex-1 text-xs font-mono p-2 rounded-lg border border-slate-300 bg-white outline-none">
+            <option value="gemini-2.5-flash">gemini-2.5-flash (推薦主力)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (次世代高速)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash (傳統穩定)</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (深度邏輯)</option>
+            <option value="custom">自訂模型代碼...</option>
+          </select>
+          <input type="text" id="input-custom-model" class="hidden flex-1 text-xs font-mono p-2 rounded-lg border border-slate-300 outline-none" placeholder="輸入自訂模型名稱">
+        </div>
+      </div>
+
+      <!-- 深度排查控制台日誌 -->
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            📟 深度排查診斷日誌 (Debug Console)
+          </span>
+          <button id="btn-copy-debug-log" class="text-[11px] text-brand-600 hover:text-brand-800 font-semibold hidden">
+            📋 複製完整診斷報告
+          </button>
+        </div>
+        <div id="debug-log-console" class="w-full h-44 bg-slate-950 text-slate-200 font-mono text-[11px] p-3 rounded-xl overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap select-text">點擊下方「⚡ 執行深度診斷測試」按鈕，系統將逐步連線並列出詳細握手封包與錯誤碼...</div>
+      </div>
+
+      <!-- 底部按鈕 -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <button id="btn-test-api" class="touch-target text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow">
+          <span id="test-spinner" class="hidden animate-spin">🔄</span>
+          <span>⚡ 執行深度診斷測試</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="btn-clear-api-key" class="text-xs text-red-600 hover:text-red-700 px-2 py-2">清除金鑰</button>
+          <button id="btn-save-api-key" class="touch-target text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg shadow transition">儲存當前設定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript 核心程式碼 -->
+  <script>
+    // 預設示範案件資料庫
+    const PRESET_PROJECTS = [
+      {
+        id: "proj_20261024_sunmoonlake",
+        title: "20261024_日月潭吊裝案",
+        date: "2026-10-24",
+        location: "南投縣日月潭遊客中心後棟觀景台",
+        redlines: "1. 吊掛作業半徑內嚴禁任何非作業人員進入。\n2. 未滿 100% 雙掛勾確實扣合於防墜母索前，禁止踩踏外樑。\n3. 起重機腳座必須確實墊放 25mm 鋼板以防地基沉陷。",
+        steps: [
+          {
+            stepNumber: 1,
+            title: "進場前交管與吊掛作業區劃設",
+            dangerLevel: "中",
+            hazards: "車行動線衝突、遊客擅闖危險吊裝區域",
+            precautions: "設置三角錐、警示連桿與閃爍警示燈，指派合格交管員 1 名持指揮棒疏導遊客動線。",
+            checkpoints: "確認旋轉半徑 12 米淨空，無人車闖入疑慮。",
+            tools: ["交通錐 x 12", "警示連桿 x 8", "交通指揮棒 x 2", "反光背心 x 4"]
+          },
+          {
+            stepNumber: 2,
+            title: "50噸輪胎式起重機支撐外伸撐座設置",
+            dangerLevel: "高",
+            hazards: "軟弱地質導致吊車傾覆、地下管線壓陷",
+            precautions: "起重機四個外伸撐座全伸展開，每一腳座下方必須鋪設 25mm 厚高強度鋼板加雙層枕木。",
+            checkpoints: "確認起重機水平儀氣泡居中，外伸撐座插銷插妥牢靠。",
+            tools: ["50T 吊車用 25mm 厚鋼板 x 4", "重型枕木 x 8", "水平尺 x 1", "輪擋 x 4"]
+          },
+          {
+            stepNumber: 3,
+            title: "鋼樑高空吊裝與雙掛勾就位鎖固",
+            dangerLevel: "高",
+            hazards: "高空墜落（8米高）、鋼索斷裂飛落砸傷",
+            precautions: "安裝人員全面佩戴背負式雙掛勾防墜安全帶，鋼索採用 4 爪鋼索吊掛，鋼樑兩端綁定引導繩拉動控制方向。",
+            checkpoints: "螺栓先以扭力扳手施擰達到 85% 預緊力，防墜母索確實錨定於主結構柱。",
+            tools: ["背負式五點安全帶 x 4", "雙大掛勾防墜器 x 4", "鋼索吊帶 4T x 2", "麻繩引導繩 20M x 2", "扭力扳手 x 2"]
+          }
+        ],
+        checklist: [
+          { category: "車輛與大型吊裝", name: "50T 輪胎式起重機及隨車證照", checked: false },
+          { category: "車輛與大型吊裝", name: "25mm 吊車腳座專用厚鋼板 (4塊)", checked: true },
+          { category: "車輛與大型吊裝", name: "重型支撐方木/枕木組 (8根)", checked: true },
+          { category: "車輛與大型吊裝", name: "4T 檢驗合格四爪鋼索與卸扣組", checked: false },
+          { category: "高空作業與 PPE 防護", name: "背負式雙大掛勾五點安全帶 (4套)", checked: true },
+          { category: "高空作業與 PPE 防護", name: "工程安全帽含下巴帶 (6頂)", checked: true },
+          { category: "高空作業與 PPE 防護", name: "抗衝擊護目鏡與防滑耐磨手套", checked: true },
+          { category: "手工具與量測", name: "校正合格扭力扳手與專用套筒", checked: false },
+          { category: "手工具與量測", name: "20米高空控制防搖晃引導繩 (2條)", checked: false },
+          { category: "工安交通與標示", name: "反光交通錐與黃黑警示連桿 (12組)", checked: true },
+          { category: "工安交通與標示", name: "高分貝哨子與充電式指揮棒 (2支)", checked: true }
+        ]
+      },
+      {
+        id: "proj_20261221_airport",
+        title: "20261221_小港機場施工案",
+        date: "2026-12-21",
+        location: "高雄國際機場第三管制航廈行李轉盤區",
+        redlines: "1. 嚴格執行 FOD（外來異物碎片）管理，所有螺絲工具依數量盤點，一顆都不能遺留於管制區。\n2. 動火作業前必須取得航站動火許可證，並備妥合格滅火器及滅火毯。\n3. 夜間施工管制門進出需隨行通報專責人員。",
+        steps: [
+          {
+            stepNumber: 1,
+            title: "進入管制區前安全檢查與工具清冊比對",
+            dangerLevel: "低",
+            hazards: "未報備工具遺留航廈管制區、違反航空保安法",
+            precautions: "所有進場手工具金屬箱貼上標籤，現場主管與安檢員逐一盤點登錄數量。",
+            checkpoints: "確認工具箱內工具件數與清冊 100% 吻合後方可通關。",
+            tools: ["刻度編號金屬工具箱 x 2", "工具盤點清冊板夾 x 1", "航廈施工通行證 x 4"]
+          },
+          {
+            stepNumber: 2,
+            title: "舊有金屬支架切除動火作業",
+            dangerLevel: "高",
+            hazards: "火花噴濺觸發航廈光電式火警探測器、管線延燒",
+            precautions: "作業周圍 5 公尺滿鋪防焰防火毯，現場備置 20 型乾粉滅火器 2 具，配置專責看火人持續監測。",
+            checkpoints: "關閉相鄰區域火警感知器報備核准，看火人全程在場。",
+            tools: ["砂輪切斷機 x 1", "防火防焰防護毯 2x3m x 2", "20型 ABC 滅火器 x 2", "動火監護紅背心 x 1"]
+          }
+        ],
+        checklist: [
+          { category: "管制與專用工具箱", name: "航空管制區編號手工具箱 (含清單)", checked: false },
+          { category: "安全防護與消防", name: "20型 ABC 乾粉滅火器 (2具檢驗合格)", checked: false },
+          { category: "安全防護與消防", name: "玻璃纖維高密度防火毯 (2條)", checked: false },
+          { category: "電動工具與動力", name: "砂輪機與護罩 (已貼年度工安合格標籤)", checked: false },
+          { category: "個人安全防護具", name: "防焰耐高溫皮手套與防護面罩", checked: false }
+        ]
+      }
+    ];
+
+    // 全域狀態
+    let appState = {
+      activeTab: 'tab-input',
+      apiKey: localStorage.getItem('gemini_api_key') || '',
+      projects: [],
+      currentProject: null,
+      selectedModel: localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash',
+      availableModels: []
+    };
+
+    // 初始化載入
+    document.addEventListener('DOMContentLoaded', () => {
+      loadProjectsFromStorage();
+      initTabs();
+      initModal();
+      initPresets();
+      initSignaturePad();
+      initButtons();
+      renderAll();
+    });
+
+    function loadProjectsFromStorage() {
+      const stored = localStorage.getItem('construction_projects');
+      if (stored) {
+        try {
+          appState.projects = JSON.parse(stored);
+        } catch (e) {
+          appState.projects = PRESET_PROJECTS;
+        }
+      } else {
+        appState.projects = PRESET_PROJECTS;
+        saveProjectsToStorage();
+      }
+      appState.currentProject = appState.projects[0];
+    }
+
+    function saveProjectsToStorage() {
+      localStorage.setItem('construction_projects', JSON.stringify(appState.projects));
+    }
+
+    // 頁籤切換
+    function initTabs() {
+      const tabs = document.querySelectorAll('.nav-tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.getAttribute('data-target');
+          switchTab(targetId);
+        });
+      });
+    }
+
+    function switchTab(targetId) {
+      document.querySelectorAll('.nav-tab').forEach(t => {
+        if (t.getAttribute('data-target') === targetId) {
+          t.classList.add('text-brand-600', 'border-b-4', 'border-brand-600', 'font-bold');
+          t.classList.remove('text-slate-500');
+        } else {
+          t.classList.remove('text-brand-600', 'border-b-4', 'border-brand-600', 'font-bold');
+          t.classList.add('text-slate-500');
+        }
+      });
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.add('hidden');
+      });
+      const activeEl = document.getElementById(targetId);
+      if (activeEl) activeEl.classList.remove('hidden');
+      appState.activeTab = targetId;
+
+      if (targetId === 'tab-checklist') {
+        resizeSignaturePad();
+      }
+    }
+
+    // 快速情境帶入
+    function initPresets() {
+      const presets = document.querySelectorAll('.btn-preset');
+      const textarea = document.getElementById('input-prompt');
+      presets.forEach(p => {
+        p.addEventListener('click', () => {
+          const text = p.textContent.trim();
+          if (text.includes('日月潭')) {
+            textarea.value = "預計 2026/10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。現場需做好遊客動線管制，調派 50 噸輪胎式起重機，因臨湖土質需在腳座下鋪設厚鋼板與枕木防止翻覆。高空作業需備妥雙掛勾背負式安全帶、防墜母索、引導繩及扭力扳手。";
+          } else if (text.includes('小港機場')) {
+            textarea.value = "預計 2026/12/21 夜間在高雄小港機場管制區航廈行李轉盤區進行金屬支架切除與更換。屬特種航空管制區作業，所有螺絲工具必須數量完全清點不遺留。切割動火作業必須滿鋪防火毯，備妥 20 型乾粉滅火器兩具與指派專責看火人監控。";
+          } else {
+            textarea.value = "預計下週在新板特區進行 18 樓高空外牆防水工程。外牆為大理石乾掛結構，有嚴重滲水狀況。需使用雙繩吊籠（高空作業車無法到達），需準備全身背負式安全帶、防墜緩衝繩、獨立生命線抓節器、高壓清洗機、高滲透結晶防水塗料與滾輪刷具。請注意強風危害與下方防護落石網設置。";
+          }
+        });
+      });
+    }
+
+    // 核心：API 設定與深度診斷面板
+    function initModal() {
+      const modal = document.getElementById('modal-api');
+      const btnOpen = document.getElementById('btn-open-api-modal');
+      const btnClose = document.getElementById('btn-close-api-modal');
+      const inputKey = document.getElementById('input-api-key');
+      const btnSave = document.getElementById('btn-save-api-key');
+      const btnClear = document.getElementById('btn-clear-api-key');
+      const btnToggle = document.getElementById('btn-toggle-key-visible');
+      const btnTest = document.getElementById('btn-test-api');
+      const selectModel = document.getElementById('select-active-model');
+      const inputCustom = document.getElementById('input-custom-model');
+      const debugConsole = document.getElementById('debug-log-console');
+      const btnCopyDebug = document.getElementById('btn-copy-debug-log');
+
+      updateApiStatusBadge();
+
+      // 同步目前已儲存的 model
+      if (appState.selectedModel) {
+        let exists = false;
+        for (let opt of selectModel.options) {
+          if (opt.value === appState.selectedModel) {
+            selectModel.value = appState.selectedModel;
+            exists = true;
+            break;
+          }
+        }
+        if (!exists) {
+          selectModel.value = 'custom';
+          inputCustom.classList.remove('hidden');
+          inputCustom.value = appState.selectedModel;
+        }
+      }
+
+      selectModel.addEventListener('change', () => {
+        if (selectModel.value === 'custom') {
+          inputCustom.classList.remove('hidden');
+          inputCustom.focus();
+        } else {
+          inputCustom.classList.add('hidden');
+          appState.selectedModel = selectModel.value;
+        }
+      });
+
+      btnOpen.addEventListener('click', () => {
+        inputKey.value = appState.apiKey;
+        modal.classList.remove('hidden');
+      });
+
+      btnClose.addEventListener('click', () => modal.classList.add('hidden'));
+
+      btnToggle.addEventListener('click', () => {
+        if (inputKey.type === 'password') {
+          inputKey.type = 'text';
+          btnToggle.textContent = '🔒 隱藏明碼';
+        } else {
+          inputKey.type = 'password';
+          btnToggle.textContent = '👁️ 顯示明碼';
+        }
+      });
+
+      btnSave.addEventListener('click', () => {
+        const val = inputKey.value.trim();
+        appState.apiKey = val;
+        localStorage.setItem('gemini_api_key', val);
+
+        const currentChosenModel = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
+        if (currentChosenModel) {
+          appState.selectedModel = currentChosenModel;
+          localStorage.setItem('gemini_selected_model', currentChosenModel);
+        }
+
+        updateApiStatusBadge();
+        modal.classList.add('hidden');
+        showToast('API 參數與模型配置已儲存！');
+      });
+
+      btnClear.addEventListener('click', () => {
+        if (confirm('確定要清除儲存的金鑰與模型快取嗎？')) {
+          inputKey.value = '';
+          appState.apiKey = '';
+          localStorage.removeItem('gemini_api_key');
+          localStorage.removeItem('gemini_selected_model');
+          updateApiStatusBadge();
+          debugConsole.innerText = '已清除金鑰設定。';
+        }
+      });
+
+      btnCopyDebug.addEventListener('click', () => {
+        navigator.clipboard.writeText(debugConsole.innerText).then(() => {
+          showToast('已複製完整除錯日誌至剪貼簿！');
+        });
+      });
+
+      // 深度排查連線診斷核心
+      btnTest.addEventListener('click', async () => {
+        const rawKey = inputKey.value.trim();
+        const spinner = document.getElementById('test-spinner');
+        const statusSpan = document.getElementById('model-scan-status');
+
+        if (!rawKey) {
+          debugConsole.innerText = '❌ [錯誤] API Key 欄位為空，請輸入有效金鑰。';
+          return;
+        }
+
+        spinner.classList.remove('hidden');
+        btnCopyDebug.classList.remove('hidden');
+        debugConsole.innerText = `[${new Date().toLocaleTimeString()}] 開始執行深度診斷測試...\n`;
+
+        function log(msg) {
+          debugConsole.innerText += msg + "\n";
+          debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        // 步驟 1: 金鑰基礎格式校驗
+        log(`▶ [步驟 1/4] 檢查金鑰字串格式...`);
+        const keyPrefix = rawKey.slice(0, 5);
+        const keyLen = rawKey.length;
+        log(`  - 長度：${keyLen} 字元`);
+        log(`  - 前綴代碼：${keyPrefix}...`);
+        if (rawKey.startsWith('AQ.')) {
+          log(`  - 格式識別：Google AI Studio 新版 Auth Key`);
+        } else if (rawKey.startsWith('AIza')) {
+          log(`  - 格式識別：Google Cloud 標準 Standard API Key`);
+        } else {
+          log(`  - ⚠️ 警告：前綴非標準格式 (通常為 AQ. 或 AIza)，請留意是否複製有缺漏。`);
+        }
+
+        let detectedValidModel = null;
+
+        // 步驟 2: 查詢可用模型端點 (ListModels API)
+        log(`\n▶ [步驟 2/4] 向 Google 請求該帳號開通之可用模型清單 (ListModels)...`);
+        
+        let modelsList = [];
+        const endpointsToTry = [
+          { ver: 'v1beta', url: `https://generativelanguage.googleapis.com/v1beta/models?key=${rawKey}` },
+          { ver: 'v1', url: `https://generativelanguage.googleapis.com/v1/models?key=${rawKey}` }
+        ];
+
+        let listSuccess = false;
+        for (const ep of endpointsToTry) {
+          try {
+            log(`  - 嘗試端點：${ep.ver} (GET /${ep.ver}/models)`);
+            const res = await fetch(ep.url);
+            log(`  - 回應 HTTP 狀態碼：${res.status} ${res.statusText}`);
+
+            const textBody = await res.text();
+            let parsedBody = {};
+            try { parsedBody = JSON.parse(textBody); } catch(e){}
+
+            if (res.ok) {
+              listSuccess = true;
+              const allModels = (parsedBody.models || []);
+              modelsList = allModels
+                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+                .map(m => m.name.replace('models/', ''));
+
+              log(`  - ✅ 成功獲取模型！帳號支援 generateContent 模型共 ${modelsList.length} 個：`);
+              modelsList.forEach(m => log(`    • ${m}`));
+              break;
+            } else {
+              log(`  - ❌ 此端點返回錯誤：`);
+              log(`    ${JSON.stringify(parsedBody, null, 2)}`);
+              if (res.status === 403) {
+                log(`    💡 [排查建議] HTTP 403 代表被拒絕。請檢查是否於 Google Cloud 限制了 Referrer 網域，或專案未啟用 Generative Language API。`);
+              } else if (res.status === 404) {
+                log(`    💡 [排查建議] HTTP 404 通常表示網路 IP 受限 (例如開啟了香港/大陸地區 VPN 節點)，或該 API 版本端點不可用。`);
+              }
+            }
+          } catch (netErr) {
+            log(`  - ❌ 連線失敗 (可能為 CORS 或網路阻擋)：${netErr.message}`);
+          }
+        }
+
+        // 動態填充模型下拉選單
+        if (modelsList.length > 0) {
+          selectModel.innerHTML = '';
+          modelsList.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m + (m.includes('flash') ? ' ⭐' : '');
+            selectModel.appendChild(opt);
+          });
+          statusSpan.innerText = `已探測到 ${modelsList.length} 個可用模型`;
+          statusSpan.className = "text-[11px] font-bold text-safety-green";
+        }
+
+        // 步驟 3: 依序測試呼叫 generateContent
+        log(`\n▶ [步驟 3/4] 執行真實生成握手測試 (generateContent)...`);
+        
+        // 優先挑選候選模型
+        const candidateModels = [];
+        const chosen = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
+        if (chosen) candidateModels.push(chosen);
+        if (modelsList.length > 0) {
+          modelsList.forEach(m => { if (!candidateModels.includes(m)) candidateModels.push(m); });
+        } else {
+          // 若 ListModels 失敗，嘗試常見模型回退清單
+          ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash-8b', 'gemini-1.5-flash'].forEach(m => {
+            if (!candidateModels.includes(m)) candidateModels.push(m);
+          });
+        }
+
+        let handshakeOk = false;
+        for (const testModel of candidateModels) {
+          log(`  - 測試調用模型：[${testModel}]`);
+          const testEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${rawKey}`;
+          
+          try {
+            const testRes = await fetch(testEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "Hello" }] }]
+              })
+            });
+
+            log(`    回應狀態：HTTP ${testRes.status}`);
+            const testJson = await testRes.json();
+
+            if (testRes.ok) {
+              log(`    ✅ 握手成功！模型 [${testModel}] 可正常輸出內容。`);
+              detectedValidModel = testModel;
+              handshakeOk = true;
+              break;
+            } else {
+              log(`    ❌ 呼叫失敗：${testJson.error?.message || testRes.statusText}`);
+            }
+          } catch (testErr) {
+            log(`    ❌ 發送異常：${testErr.message}`);
+          }
+        }
+
+        // 步驟 4: 總結診斷報告
+        log(`\n▶ [步驟 4/4] 診斷總結...`);
+        if (handshakeOk && detectedValidModel) {
+          log(`🎉 【診斷合格】：API 連線無誤！系統已為您配對鎖定模型：${detectedValidModel}`);
+          selectModel.value = detectedValidModel;
+          appState.apiKey = rawKey;
+          appState.selectedModel = detectedValidModel;
+          localStorage.setItem('gemini_api_key', rawKey);
+          localStorage.setItem('gemini_selected_model', detectedValidModel);
+          updateApiStatusBadge();
+          showToast('✅ 診斷合格，設定已自動保存！');
+        } else {
+          log(`❌ 【診斷未通過】：無法順利調用模型。請依上述記錄之狀態碼與排查建議進行調整。`);
+        }
+
+        spinner.classList.add('hidden');
+      });
+    }
+
+    function updateApiStatusBadge() {
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+      if (appState.apiKey && appState.apiKey.length > 10) {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-safety-green";
+        text.innerText = `API 就緒 (${appState.selectedModel || 'Gemini'})`;
+      } else {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+        text.innerText = "離線示範模式";
+      }
+    }
+
+    // 簽名板
+    let signatureCanvas, signatureCtx, isDrawing = false;
+    function initSignaturePad() {
+      signatureCanvas = document.getElementById('signature-pad');
+      if (!signatureCanvas) return;
+      signatureCtx = signatureCanvas.getContext('2d');
+
+      function startDraw(e) {
+        isDrawing = true;
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        signatureCtx.beginPath();
+        signatureCtx.moveTo(clientX - rect.left, clientY - rect.top);
+      }
+      function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        signatureCtx.lineWidth = 2.5;
+        signatureCtx.lineCap = 'round';
+        signatureCtx.strokeStyle = '#0f172a';
+        signatureCtx.lineTo(clientX - rect.left, clientY - rect.top);
+        signatureCtx.stroke();
+      }
+      function endDraw() { isDrawing = false; }
+
+      signatureCanvas.addEventListener('mousedown', startDraw);
+      signatureCanvas.addEventListener('mousemove', draw);
+      signatureCanvas.addEventListener('mouseup', endDraw);
+      signatureCanvas.addEventListener('touchstart', startDraw, { passive: false });
+      signatureCanvas.addEventListener('touchmove', draw, { passive: false });
+      signatureCanvas.addEventListener('touchend', endDraw);
+
+      document.getElementById('btn-clear-sig').addEventListener('click', () => {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      });
+    }
+
+    function resizeSignaturePad() {
+      if (!signatureCanvas) return;
+      const rect = signatureCanvas.parentElement.getBoundingClientRect();
+      if (rect.width > 0 && signatureCanvas.width !== rect.width) {
+        signatureCanvas.width = rect.width;
+        signatureCanvas.height = 144;
+      }
+    }
+
+    // 按鈕監聽
+    function initButtons() {
+      document.getElementById('btn-clear-input').addEventListener('click', () => {
+        document.getElementById('input-prompt').value = '';
+      });
+
+      document.getElementById('btn-generate').addEventListener('click', handleGenerate);
+
+      document.getElementById('btn-copy-line').addEventListener('click', () => {
+        if (!appState.currentProject) return;
+        const p = appState.currentProject;
+        let lineText = `📢【施工計畫重點通報】\n📌 案場：${p.title}\n📅 日期：${p.date}\n📍 地點：${p.location}\n\n🚨【負責人安全紅線】\n${p.redlines}\n\n🛠️【主要工序摘要】\n`;
+        p.steps.forEach(s => {
+          lineText += `${s.stepNumber}. ${s.title} (${s.dangerLevel}風險)\n   ⚠️防護：${s.precautions}\n`;
+        });
+        lineText += `\n請帶班主管出工前確實驗收並落實清點！`;
+
+        navigator.clipboard.writeText(lineText).then(() => {
+          showToast('已複製 LINE 工務群格式重點！');
+        });
+      });
+
+      document.getElementById('btn-print').addEventListener('click', () => {
+        window.print();
+      });
+
+      document.getElementById('btn-reset-checklist').addEventListener('click', () => {
+        if (!appState.currentProject) return;
+        if (confirm('確定要重設該案的所有工具點檢狀態嗎？')) {
+          appState.currentProject.checklist.forEach(item => item.checked = false);
+          saveProjectsToStorage();
+          renderChecklist();
+        }
+      });
+
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.projects, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", `施工計畫案庫備份_${new Date().toISOString().slice(0,10)}.json`);
+        dlAnchor.click();
+      });
+    }
+
+    // 生成施工計畫核心邏輯
+    async function handleGenerate() {
+      const promptText = document.getElementById('input-prompt').value.trim();
+      if (!promptText) {
+        alert('請先輸入施工任務的相關口語交代！');
+        return;
+      }
+
+      const spinner = document.getElementById('btn-generate-spinner');
+      const btn = document.getElementById('btn-generate');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+
+      try {
+        let newPlan = null;
+        if (appState.apiKey && appState.apiKey.length > 10) {
+          newPlan = await generatePlanWithGemini(promptText);
+        } else {
+          newPlan = generateOfflinePlan(promptText);
+        }
+
+        appState.projects.unshift(newPlan);
+        appState.currentProject = newPlan;
+        saveProjectsToStorage();
+
+        renderAll();
+        switchTab('tab-steps');
+        showToast('施工計畫與表單已生成完畢！');
+      } catch (err) {
+        console.error(err);
+        alert(`雲端生成異常：${err.message}\n已自動為您轉入「離線工程解析引擎」生成標準計畫。`);
+        const fallbackPlan = generateOfflinePlan(promptText);
+        appState.projects.unshift(fallbackPlan);
+        appState.currentProject = fallbackPlan;
+        saveProjectsToStorage();
+        renderAll();
+        switchTab('tab-steps');
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+      }
+    }
+
+    // 調用 Gemini API 生成結構化資料
+    async function generatePlanWithGemini(prompt) {
+      const model = appState.selectedModel || 'gemini-2.5-flash';
+      const key = appState.apiKey;
+
+      const systemInstruction = `
+你是一位具備現場施工管理與職業安全衛生經驗的工務主管。
+請根據負責人的口語交代，輸出結構化繁體中文 JSON，不得包含 markdown 標籤或無關文字。
+
+JSON 格式規範：
+{
+  "title": "YYYYMMDD_案場簡稱",
+  "date": "YYYY-MM-DD",
+  "location": "具體案場地點",
+  "redlines": "負責人嚴格宣示的安全紅線 (條列 2-3 項重點)",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "工步名稱",
+      "dangerLevel": "高 / 中 / 低",
+      "hazards": "潛在危害分析",
+      "precautions": "防範作為與標準施工工法",
+      "checkpoints": "帶班人員自主驗收與查驗紅線",
+      "tools": ["工具名稱與規格數量"]
+    }
+  ],
+  "checklist": [
+    {
+      "category": "分類名稱 (如：個人防護具/動力機具/手工具/量測與檢驗/交管與工安)",
+      "name": "器具完整名稱與規格數量",
+      "checked": false
+    }
+  ]
+}
+`;
+
+      const requestBody = {
+        contents: [
+          { role: "user", parts: [{ text: `【口語交辦事項】：\n${prompt}` }] }
+        ],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2
+        }
+      };
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json();
+        throw new Error(errJson.error?.message || response.statusText);
+      }
+
+      const resData = await response.json();
+      const rawText = resData.candidates[0].content.parts[0].text;
+      const parsed = JSON.parse(rawText);
+      parsed.id = "proj_" + Date.now();
+      return parsed;
+    }
+
+    // 離線工程解析備用機制
+    function generateOfflinePlan(prompt) {
+      const dateMatch = prompt.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/) || prompt.match(/\d{1,2}月\d{1,2}號?日?/);
+      const dateStr = dateMatch ? dateMatch[0].replace(/號|日/, '').replace(/[\/月]/g, '-') : new Date().toISOString().slice(0,10);
+      const cleanDate = dateStr.length === 5 ? `2026-${dateStr}` : dateStr;
+      const formattedDateId = cleanDate.replace(/-/g, '');
+
+      let title = `${formattedDateId}_案場自訂派工計畫`;
+      if (prompt.includes('吊裝') || prompt.includes('吊車')) title = `${formattedDateId}_鋼構與重型機械吊裝案`;
+      else if (prompt.includes('防水') || prompt.includes('外牆')) title = `${formattedDateId}_高空外牆防墜與防水施工案`;
+      else if (prompt.includes('焊接') || prompt.includes('風管')) title = `${formattedDateId}_通風管路焊接與侷限空間安裝案`;
+
+      return {
+        id: "proj_" + Date.now(),
+        title: title,
+        date: cleanDate,
+        location: prompt.slice(0, 20) + "（現場確認）",
+        redlines: "1. 嚴禁任何無防墜措施下從事高空作業。\n2. 動火及臨時用電必須配置漏電斷路器與防焰毯。\n3. 進場人員確實穿戴符合規範之反光背心與合格工程帽。",
+        steps: [
+          {
+            stepNumber: 1,
+            title: "現場作業環境點檢與警戒隔離",
+            dangerLevel: "中",
+            hazards: "非作業人員誤入動線、現場通道障礙",
+            precautions: "以警示帶與交通錐確實隔離動線，確認進場出入口暢通無阻。",
+            checkpoints: "確實巡檢周遭管線與地面承重狀況。",
+            tools: ["高反光交通錐 x 6", "黃黑警示連桿 x 4", "反光指揮背心 x 4"]
+          },
+          {
+            stepNumber: 2,
+            title: "主體結構安裝與固定作業",
+            dangerLevel: "高",
+            hazards: "高空墜落、重物夾砸傷、手工具失手掉落",
+            precautions: "作業人員五點式雙掛勾防墜安全帶確實懸掛於結構母索上，手工具全面綁定防墜手繩。",
+            checkpoints: "螺栓扭力值依規範施擰，扣件無鬆動。",
+            tools: ["五點式背負安全帶 x 4", "手工具防墜失手繩 x 6", "充電式衝擊扳手 x 2"]
+          },
+          {
+            stepNumber: 3,
+            title: "完工自主驗收與工具 100% 撤場清點",
+            dangerLevel: "低",
+            hazards: "工具或金屬廢料遺留現場衍生危險",
+            precautions: "落實 5S 清理，點對點核對工具箱所有編號器具數量。",
+            checkpoints: "現場廢料清理裝袋，確認無任何物品遺留。",
+            tools: ["手持工業吸塵器/掃具 x 1", "重合型工具清點箱 x 2"]
+          }
+        ],
+        checklist: [
+          { category: "安全防護與 PPE", name: "符合 CNS 規範背負式五點安全帶 (含雙掛勾)", checked: false },
+          { category: "安全防護與 PPE", name: "合格工程安全帽含耐磨下巴帶", checked: true },
+          { category: "安全防護與 PPE", name: "高透氣防滑耐磨作業手套", checked: true },
+          { category: "動力與電動工具", name: "大扭力充電式衝擊扳手 (含備用電池 2 顆)", checked: false },
+          { category: "工安與現場隔離", name: "反光警示交通錐與連桿組", checked: true },
+          { category: "量測與自主檢查", name: "標準扭力值檢驗扳手與套筒組", checked: false },
+          { category: "現場清潔與廢料", name: "工地專用加厚防穿刺垃圾袋與清理掃具", checked: false }
+        ]
+      };
+    }
+
+    // 畫面渲染
+    function renderAll() {
+      renderPlan();
+      renderChecklist();
+      renderProjects();
+    }
+
+    function renderPlan() {
+      const p = appState.currentProject;
+      if (!p) return;
+
+      document.getElementById('badge-plan-date').textContent = p.date;
+      document.getElementById('label-plan-title').textContent = p.title;
+      document.getElementById('label-plan-location').textContent = p.location;
+      document.getElementById('label-plan-redlines').innerHTML = p.redlines.replace(/\n/g, '<br>');
+
+      const container = document.getElementById('steps-container');
+      container.innerHTML = '';
+
+      p.steps.forEach(step => {
+        const badgeColor = step.dangerLevel === '高' 
+          ? 'bg-red-100 text-red-800 border-red-200' 
+          : step.dangerLevel === '中' 
+            ? 'bg-amber-100 text-amber-800 border-amber-200' 
+            : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+
+        const card = document.createElement('div');
+        card.className = "border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm flex flex-col gap-3 hover:border-slate-300 transition";
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-sm flex items-center justify-center">${step.stepNumber}</span>
+              <h3 class="font-bold text-base text-slate-900">${step.title}</h3>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-md border ${badgeColor}">
+              危害等級：${step.dangerLevel}風險
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
+            <div class="bg-rose-50/60 p-3 rounded-lg border border-rose-100">
+              <span class="font-bold text-rose-900 block mb-0.5">⚠️ 潛在危害分析：</span>
+              <p class="text-rose-800">${step.hazards}</p>
+            </div>
+            <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">
+              <span class="font-bold text-blue-900 block mb-0.5">🛡️ 標準防範作為：</span>
+              <p class="text-blue-800">${step.precautions}</p>
+            </div>
+          </div>
+
+          <div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 text-xs">
+            <span class="font-bold text-emerald-950 flex items-center gap-1.5">
+              🎯 員工自主驗收查驗要點（自我防錯把關）：
+            </span>
+            <p class="text-emerald-900 mt-1 font-medium">${step.checkpoints}</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 pt-1">
+            <span class="text-[11px] font-bold text-slate-500">本工步所需機具：</span>
+            ${step.tools.map(t => `<span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">${t}</span>`).join('')}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderChecklist() {
+      const p = appState.currentProject;
+      if (!p) return;
+
+      const container = document.getElementById('checklist-container');
+      container.innerHTML = '';
+
+      const categorized = {};
+      p.checklist.forEach((item, idx) => {
+        if (!categorized[item.category]) categorized[item.category] = [];
+        categorized[item.category].push({ ...item, originalIndex: idx });
+      });
+
+      let totalCount = p.checklist.length;
+      let checkedCount = p.checklist.filter(i => i.checked).length;
+      let percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+
+      document.getElementById('text-progress-ratio').textContent = `${checkedCount} / ${totalCount} 項 (${percentage}%)`;
+      document.getElementById('bar-checklist-progress').style.width = `${percentage}%`;
+      document.getElementById('badge-check-progress').textContent = `${percentage}%`;
+
+      for (const [catName, items] of Object.entries(categorized)) {
+        const catBox = document.createElement('div');
+        catBox.className = "flex flex-col gap-2";
+        catBox.innerHTML = `
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1.5 rounded-md inline-block self-start">
+            📦 ${catName} (${items.filter(i => i.checked).length}/${items.length})
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            ${items.map(item => `
+              <div data-index="${item.originalIndex}" class="item-card touch-target p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${item.checked ? 'checked-item border-slate-200' : 'bg-white border-slate-300 hover:border-brand-400 shadow-sm'}">
+                <div class="flex items-center gap-3">
+                  <div class="w-6 h-6 rounded-md border flex items-center justify-center font-bold text-sm ${item.checked ? 'bg-safety-green border-safety-green text-white' : 'border-slate-400 bg-white'}">
+                    ${item.checked ? '✓' : ''}
+                  </div>
+                  <span class="text-sm font-semibold">${item.name}</span>
+                </div>
+                <span class="text-[11px] font-bold ${item.checked ? 'text-safety-green' : 'text-slate-400'}">
+                  ${item.checked ? '已點妥' : '待確認'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        catBox.querySelectorAll('.item-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const idx = parseInt(card.getAttribute('data-index'));
+            p.checklist[idx].checked = !p.checklist[idx].checked;
+            saveProjectsToStorage();
+            if (navigator.vibrate) navigator.vibrate(35);
+            renderChecklist();
+          });
+        });
+
+        container.appendChild(catBox);
+      }
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projects-container');
+      container.innerHTML = '';
+
+      appState.projects.forEach(proj => {
+        const isCurrent = appState.currentProject && appState.currentProject.id === proj.id;
+        const totalItems = proj.checklist.length;
+        const checkedItems = proj.checklist.filter(i => i.checked).length;
+        const ratio = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = `border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between gap-4 transition ${isCurrent ? 'ring-2 ring-brand-500 border-brand-500' : 'border-slate-200 hover:border-slate-300'}`;
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs font-bold text-slate-500">${proj.date}</span>
+              ${isCurrent ? '<span class="text-[10px] font-black bg-brand-600 text-white px-2 py-0.5 rounded">目前選定</span>' : ''}
+            </div>
+            <h3 class="font-bold text-base text-slate-900 mt-1">${proj.title}</h3>
+            <p class="text-xs text-slate-500 mt-1 line-clamp-1">📍 ${proj.location}</p>
+            <div class="mt-3 flex items-center justify-between text-xs text-slate-600">
+              <span>清點進度</span>
+              <span class="font-bold">${ratio}% (${checkedItems}/${totalItems})</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mt-1 overflow-hidden">
+              <div class="bg-safety-green h-full rounded-full" style="width: ${ratio}%"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <button class="btn-load-proj touch-target flex-1 text-xs font-bold py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition">
+              載入此案
+            </button>
+            <button class="btn-clone-proj touch-target text-xs font-semibold py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="複製為新範本">
+              📋 複製
+            </button>
+            <button class="btn-del-proj touch-target text-xs text-red-500 hover:text-red-700 p-2" title="刪除案件">
+              🗑️
+            </button>
+          </div>
+        `;
+
+        card.querySelector('.btn-load-proj').addEventListener('click', () => {
+          appState.currentProject = proj;
+          renderAll();
+          switchTab('tab-steps');
+          showToast(`已切換至【${proj.title}】`);
+        });
+
+        card.querySelector('.btn-clone-proj').addEventListener('click', () => {
+          const cloned = JSON.parse(JSON.stringify(proj));
+          cloned.id = "proj_" + Date.now();
+          cloned.title = cloned.title + " (複製範本)";
+          cloned.checklist.forEach(i => i.checked = false);
+          appState.projects.unshift(cloned);
+          appState.currentProject = cloned;
+          saveProjectsToStorage();
+          renderAll();
+          showToast('已複製為新案件範本！');
+        });
+
+        card.querySelector('.btn-del-proj').addEventListener('click', () => {
+          if (appState.projects.length <= 1) {
+            alert('系統至少需保留一個案件資料！');
+            return;
+          }
+          if (confirm(`確定要刪除【${proj.title}】嗎？`)) {
+            appState.projects = appState.projects.filter(p => p.id !== proj.id);
+            if (appState.currentProject.id === proj.id) {
+              appState.currentProject = appState.projects[0];
+            }
+            saveProjectsToStorage();
+            renderAll();
+          }
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = "fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xl z-50 transition transform duration-300";
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
