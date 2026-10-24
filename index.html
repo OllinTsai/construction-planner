@@ -414,27 +414,53 @@
 
   <!-- API KEY 設定彈窗 -->
   <div id="modal-api-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
         <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
           <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
           </svg>
-          Gemini API 密鑰設置
+          Gemini API 密鑰設置與連線診斷
         </h3>
         <button id="btn-close-modal" class="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
       </div>
-      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-        系統優先使用預設的 Gemini 3 Flash 模型調用。若您想使用自己的 Google AI Studio API Key，可在下方輸入，系統將保存在您的本機瀏覽器中（不會外流）：
+
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+        系統支援 Google Gemini Flash 模型進行工程工步與機具清單解構。金鑰僅儲存在您的瀏覽器本地（LocalStorage），絕不上傳外流。
       </p>
-      <div class="mb-4">
-        <label class="block text-xs font-bold text-slate-700 mb-1">Gemini API Key：</label>
-        <input id="input-api-key" type="password" placeholder="AIzaSy..." class="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+
+      <!-- 金鑰輸入框與顯示切換 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-xs font-bold text-slate-700">Gemini API Key：</label>
+          <button id="btn-toggle-key-visibility" type="button" class="text-xs text-amber-600 hover:text-amber-700 font-medium">👁️ 顯示明碼</button>
+        </div>
+        <div class="relative">
+          <input id="input-api-key" type="password" placeholder="貼上 AIzaSy 開頭的金鑰..." class="w-full p-3 pr-10 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-none">
+        </div>
       </div>
-      <div class="flex justify-end gap-2">
-        <button id="btn-save-key" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs transition">
-          儲存設定
+
+      <!-- 連線診斷結果訊息顯示區塊 -->
+      <div id="api-test-result" class="hidden mb-4 p-3.5 rounded-xl text-xs leading-relaxed transition-all"></div>
+
+      <!-- 按鈕控制列 -->
+      <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+        <button id="btn-test-key" type="button" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition flex items-center gap-1.5 border border-slate-300">
+          <svg id="test-spinner" class="animate-spin h-3.5 w-3.5 text-slate-700 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span id="test-btn-text">⚡ 測試連線與檢測</span>
         </button>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-clear-key" type="button" class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-medium transition">
+            清除金鑰
+          </button>
+          <button id="btn-save-key" type="button" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs transition shadow-sm">
+            儲存設定
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -770,6 +796,113 @@
       });
     }
 
+    /* ==========================================================================
+       畫面渲染：施工工序與危害分析 (TAB 2)
+       ========================================================================== */
+    function renderPlan() {
+      const planTitle = document.getElementById('plan-title');
+      const planDate = document.getElementById('plan-date');
+      const planLocation = document.getElementById('plan-location');
+      const planLeaderNote = document.getElementById('plan-leader-note');
+      const stepsContainer = document.getElementById('steps-container');
+      const stepsBadge = document.getElementById('badge-steps-count');
+
+      if (!currentPlan) return;
+
+      planTitle.textContent = currentPlan.projectTitle || "尚未設定專案名稱";
+      planDate.textContent = currentPlan.constructionDate || "待定";
+      planLocation.textContent = currentPlan.location || "待輸入地點";
+      planLeaderNote.textContent = currentPlan.leaderKeyFocus || "現場落實全員工安防護，安全第一！";
+
+      const stepCount = currentPlan.steps?.length || 0;
+      stepsBadge.textContent = stepCount;
+      if (stepCount > 0) {
+        stepsBadge.classList.remove('hidden');
+      } else {
+        stepsBadge.classList.add('hidden');
+      }
+
+      stepsContainer.innerHTML = "";
+
+      if (!currentPlan.steps || currentPlan.steps.length === 0) {
+        stepsContainer.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-slate-300">
+            <svg class="w-12 h-12 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <p class="font-bold text-slate-500">此案件尚未建立工序工步資料</p>
+            <p class="text-xs text-slate-400 mt-1">請切換至「1. 負責人口語交辦」頁籤輸入或使用語音交辦</p>
+          </div>
+        `;
+        return;
+      }
+
+      currentPlan.steps.forEach((step, idx) => {
+        let riskBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+        if (step.riskLevel === "高風險") {
+          riskBadgeClass = "bg-rose-100 text-rose-800 border-rose-200";
+        } else if (step.riskLevel === "中風險") {
+          riskBadgeClass = "bg-amber-100 text-amber-800 border-amber-200";
+        }
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-5 shadow-sm border border-slate-200/90 transition-all hover:shadow-md";
+
+        const hazardsHtml = (step.hazardRisks || []).map(h => `<li class="flex items-center gap-1.5"><span class="text-rose-500 font-bold">⚠️</span><span>${h}</span></li>`).join('');
+        const safetyHtml = (step.safetyMeasures || []).map(s => `<li class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">🛡️</span><span>${s}</span></li>`).join('');
+        const inspectHtml = (step.inspectionPoints || []).map(i => `<li class="flex items-center gap-1.5"><span class="text-blue-600 font-bold">✓</span><span>${i}</span></li>`).join('');
+        const toolsHtml = (step.tools || []).map(t => `<span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 border border-slate-200">${t}</span>`).join('');
+
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
+            <div class="flex items-center space-x-2">
+              <span class="w-7 h-7 rounded-lg bg-slate-900 text-amber-400 font-bold flex items-center justify-center text-xs">
+                ${step.stepNumber || (idx + 1)}
+              </span>
+              <h4 class="font-bold text-slate-900 text-base">${step.stepName}</h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs px-2.5 py-1 rounded-md border font-bold ${riskBadgeClass}">
+                ${step.riskLevel || '一般風險'}
+              </span>
+              <span class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/80">
+                工種：${step.assignedRole || '施工人員'}
+              </span>
+            </div>
+          </div>
+
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+            ${step.description}
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs mb-3">
+            <div class="bg-rose-50/60 p-3 rounded-xl border border-rose-100">
+              <span class="font-bold text-rose-800 block mb-1.5">潛在危害與安全防護措施：</span>
+              <ul class="space-y-1 text-slate-700">
+                ${hazardsHtml}
+                ${safetyHtml}
+              </ul>
+            </div>
+            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+              <span class="font-bold text-blue-800 block mb-1.5">員工自主驗收查核重點：</span>
+              <ul class="space-y-1 text-slate-700">
+                ${inspectHtml || '<li class="text-slate-400">標準作業程序自主落實</li>'}
+              </ul>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100">
+            <span class="text-xs font-bold text-slate-500 block mb-1.5">本工步所需機具與器具：</span>
+            <div class="flex flex-wrap gap-1.5">
+              ${toolsHtml || '<span class="text-xs text-slate-400">無特殊工具需求</span>'}
+            </div>
+          </div>
+        `;
+
+        stepsContainer.appendChild(card);
+      });
+    }
+
     function exportProjectsJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -990,7 +1123,7 @@
 
       } catch (error) {
         console.error("生成施工計畫失敗：", error);
-        showToast("調用 API 出錯，啟用離線工程智慧解析...", "error");
+        showToast(`API 調用異常 (${error.message})，啟用離線工程智慧解析...`, "error");
         const fallbackData = generateLocalPlan(promptText);
         currentPlan = { ...currentPlan, ...fallbackData };
         savePlanToLocal();
@@ -1021,6 +1154,7 @@
 
     /* 調用 Gemini 結構化 API */
     async function callGeminiStructuredApi(userInput) {
+      const cleanKey = (userApiKey || "").trim();
       const systemInstruction = `
 你是一位擁有25年現場施工、營造工程管理、職業安全衛生（勞檢標準）頂尖專家。
 使用者是一位工程團隊負責人（老闆），他會用口語化的語音或文字進行工程派工交代。
@@ -1093,18 +1227,40 @@
         }
       };
 
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userApiKey}`;
+      const modelCandidates = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+      let lastError = null;
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      for (const model of modelCandidates) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
-      if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-      const result = await response.json();
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-      return JSON.parse(text);
+          if (response.ok) {
+            const result = await response.json();
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              return JSON.parse(text);
+            }
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            lastError = new Error(errData.error?.message || `HTTP ${response.status}`);
+            if (response.status === 400 || response.status === 403) {
+              throw lastError;
+            }
+          }
+        } catch (e) {
+          lastError = e;
+          if (e.message && (e.message.includes('403') || e.message.includes('400'))) {
+            throw e;
+          }
+        }
+      }
+
+      throw lastError || new Error("無法連接 Gemini API 伺服器");
     }
 
     /* 離線工程智慧解析器（當離線或無 API 時無縫運作） */
@@ -1113,7 +1269,6 @@
       const dateMatch = rawText.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/);
       const dateStr = dateMatch ? dateMatch[0] : `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')}`;
 
-      // 地點提取嘗試
       let loc = "施工作業現場";
       if (rawText.includes("在")) {
         const afterAt = rawText.split("在")[1];
@@ -1147,52 +1302,41 @@
             hazardRisks: ["粉塵飛濺刺傷眼睛", "手工具震動與噪音"],
             safetyMeasures: ["全程配戴抗衝擊護目鏡", "配戴防塵口罩與防音耳塞"],
             inspectionPoints: ["管路接頭牢固無漏水漏氣", "固定支撐架間距小於1.5米"],
-            tools: ["電動電鑽/切斷機", "雷射水平儀", "套筒工具組", "水平尺"]
+            tools: ["手提砂輪機", "充電式震動電鑽", "水平尺", "防塵護目鏡"]
           },
           {
             stepNumber: 3,
-            stepName: "工序檢驗、試水試壓與自主查核驗收",
-            description: "實施管線加壓測試或結構強度垂直度複核，員工落實自主檢查表簽署。",
-            assignedRole: "組長 / 品質負責人",
+            stepName: "完工自主查驗、試壓試水與現場清理",
+            description: "進行管路或結構查驗、清理施工廢料並將作業區域復原，回報主管。",
+            assignedRole: "領班與作業員",
             riskLevel: "低風險",
-            hazardRisks: ["試壓接頭脫落噴濺"],
-            safetyMeasures: ["加壓過程中禁止正對接頭", "緩慢釋放壓力閥"],
-            inspectionPoints: ["試壓維持規範壓力達標無洩漏", "環境全數清潔廢料集中"],
-            tools: ["手動試壓泵", "精密壓力錶", "驗收檢查表板夾"]
+            hazardRisks: ["廢棄物刺傷手部", "濕滑地面跌倒"],
+            safetyMeasures: ["穿著防穿刺安全鞋", "佩戴防割手套"],
+            inspectionPoints: ["現場垃圾廢料全數清空", "驗收功能一切正常"],
+            tools: ["工業吸塵器", "垃圾袋", "清潔掃具", "自主檢查表"]
           }
         ],
         consolidatedEquipment: [
           {
-            category: "⚡ 動力與電動手工具",
+            category: "⚡ 動力設備與電動工具",
             items: [
-              { name: "無刷震動電鑽組", spec: "18V (含2顆鋰電池+快充)", qty: "1 組", checked: false },
-              { name: "手提砂輪切斷機", spec: "4吋 (附防護蓋與扳手)", qty: "1 台", checked: false },
-              { name: "電動破碎機(鴨頭)", spec: "六角柄 (含尖鑿、扁鑿)", qty: "1 台", checked: false }
+              { name: "手提砂輪機 / 切割機", spec: "110V 附防護罩", qty: "2 台", checked: false },
+              { name: "充電式震動電鑽組", spec: "18V 附鑽尾組", qty: "2 組", checked: false }
             ]
           },
           {
-            category: "🧰 通用手工具與五金料件",
+            category: "🦺 勞安與個人防護裝備 (PPE)",
             items: [
-              { name: "重型棘輪套筒扳手組", spec: "二分、三分全套", qty: "1 盒", checked: false },
-              { name: "活動扳手與管鉗", spec: "10吋 / 12吋", qty: "各 2 支", checked: false },
-              { name: "專業電工絕緣螺絲起子", spec: "1000V 耐壓", qty: "1 套", checked: false }
+              { name: "工程安全帽 (附下巴帶)", spec: "CNS 認證合格", qty: "4 頂", checked: false },
+              { name: "高可視度反光背心", spec: "透氣反光網狀", qty: "4 件", checked: false },
+              { name: "防穿刺防砸安全工作鞋", spec: "鋼頭防刺底", qty: "4 雙", checked: false }
             ]
           },
           {
-            category: "📐 測量檢驗與儀器",
+            category: "🔧 手工具與五金配件",
             items: [
-              { name: "12線綠光雷射水平儀", spec: "含三腳架與磁吸壁架", qty: "1 組", checked: false },
-              { name: "數位驗電筆 / 三用電表", spec: "CAT III 認證", qty: "1 台", checked: false },
-              { name: "5.5M 鋼捲尺", spec: "魯班尺公英制", qty: "2 捲", checked: false }
-            ]
-          },
-          {
-            category: "🦺 個人安全防護具 (PPE)",
-            items: [
-              { name: "CNS認證工程安全帽", spec: "附透氣孔與四點式下巴帶", qty: "依人數備齊", checked: false },
-              { name: "背負式雙大鉤安全帶", spec: "高空防墜用 (含緩衝包)", qty: "2 組", checked: false },
-              { name: "防滑防穿刺安全鞋", spec: "鋼頭 / 塑鋼頭", qty: "全員穿著", checked: false },
-              { name: "防護護目鏡與防塵口罩", spec: "抗UV抗刮 / 活性碳", qty: "1 盒", checked: false }
+              { name: "水平尺與捲尺組", spec: "5M 捲尺 / 磁性水平尺", qty: "2 組", checked: false },
+              { name: "活動開口扳手與棘輪組", spec: "標準多功能組", qty: "2 組", checked: false }
             ]
           }
         ]
@@ -1200,104 +1344,164 @@
     }
 
     /* ==========================================================================
-       畫面渲染：施工工序與危害分析 (TAB 2)
+       API KEY Modal 視窗操作與診斷檢測
        ========================================================================== */
-    function renderPlan() {
-      document.getElementById('plan-title').textContent = currentPlan.projectTitle || "未命名施工任務";
-      document.getElementById('plan-date').textContent = currentPlan.constructionDate || "未指定";
-      document.getElementById('plan-location').textContent = currentPlan.location || "未指定";
-      document.getElementById('plan-leader-note').textContent = currentPlan.leaderKeyFocus || "落實自主品管，安全第一";
+    function initModal() {
+      const modal = document.getElementById('modal-api-config');
+      const btnOpen = document.getElementById('btn-api-config');
+      const btnClose = document.getElementById('btn-close-modal');
+      const btnSave = document.getElementById('btn-save-key');
+      const btnClear = document.getElementById('btn-clear-key');
+      const inputKey = document.getElementById('input-api-key');
+      const btnTest = document.getElementById('btn-test-key');
+      const testSpinner = document.getElementById('test-spinner');
+      const testBtnText = document.getElementById('test-btn-text');
+      const resultBox = document.getElementById('api-test-result');
+      const btnToggle = document.getElementById('btn-toggle-key-visibility');
 
-      const badgeSteps = document.getElementById('badge-steps-count');
-      const stepCount = currentPlan.steps?.length || 0;
-      badgeSteps.textContent = stepCount + " 步";
-      badgeSteps.classList.remove('hidden');
+      btnOpen.addEventListener('click', () => {
+        inputKey.value = userApiKey || "";
+        resultBox.classList.add('hidden');
+        resultBox.innerHTML = "";
+        modal.classList.remove('hidden');
+      });
 
-      const container = document.getElementById('steps-container');
-      container.innerHTML = "";
+      btnClose.addEventListener('click', () => modal.classList.add('hidden'));
 
-      if (!currentPlan.steps || currentPlan.steps.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-slate-300">目前尚無工步資料，請先至「1. 負責人口語交辦」生成計畫。</div>`;
-        return;
-      }
+      btnToggle.addEventListener('click', () => {
+        if (inputKey.type === 'password') {
+          inputKey.type = 'text';
+          btnToggle.textContent = '🔒 隱藏明碼';
+        } else {
+          inputKey.type = 'password';
+          btnToggle.textContent = '👁️ 顯示明碼';
+        }
+      });
 
-      currentPlan.steps.forEach((step, idx) => {
-        let riskBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
-        if (step.riskLevel === "高風險") riskBadgeClass = "bg-rose-50 text-rose-700 border-rose-200";
-        if (step.riskLevel === "中風險") riskBadgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+      btnClear.addEventListener('click', () => {
+        inputKey.value = "";
+        userApiKey = "";
+        localStorage.removeItem('GEMINI_API_KEY');
+        updateApiStatusBadge();
+        resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-slate-100 text-slate-700 border border-slate-300";
+        resultBox.innerHTML = "ℹ️ 已清除自訂金鑰，系統將恢復為離線工程智慧解析模式。";
+        resultBox.classList.remove('hidden');
+        showToast("已清除 API Key！");
+      });
 
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl p-5 shadow-sm border border-slate-200/90 transition hover:shadow-md";
+      btnSave.addEventListener('click', () => {
+        userApiKey = inputKey.value.trim();
+        localStorage.setItem('GEMINI_API_KEY', userApiKey);
+        updateApiStatusBadge();
+        modal.classList.add('hidden');
+        showToast("API Key 設定已儲存！");
+      });
 
-        card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
-            <div class="flex items-center space-x-3">
-              <span class="w-7 h-7 rounded-lg bg-slate-900 text-amber-400 font-black text-sm flex items-center justify-center shadow">
-                ${step.stepNumber || idx + 1}
-              </span>
-              <h4 class="text-base font-bold text-slate-900">${step.stepName}</h4>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs px-2.5 py-1 rounded-md font-bold border ${riskBadgeClass}">
-                ⚠️ ${step.riskLevel || '一般作業'}
-              </span>
-              <span class="text-xs px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 font-medium">
-                👤 ${step.assignedRole || '現場人員'}
-              </span>
-            </div>
-          </div>
+      // ⚡ 測試連線與功能檢測按鈕
+      btnTest.addEventListener('click', async () => {
+        const testKey = inputKey.value.trim();
+        if (!testKey) {
+          resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-800 border border-rose-200";
+          resultBox.innerHTML = "❌ <strong>請先輸入 API Key！</strong><br>您尚未貼入金鑰，請前往 Google AI Studio 複製以 <code>AIzaSy...</code> 開頭的金鑰。";
+          resultBox.classList.remove('hidden');
+          return;
+        }
 
-          <p class="text-xs text-slate-600 mb-3.5 leading-relaxed bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-            <strong>工法作法：</strong> ${step.description}
-          </p>
+        btnTest.disabled = true;
+        testSpinner.classList.remove('hidden');
+        testBtnText.textContent = "正在測試連線中...";
+        resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-amber-50 text-amber-900 border border-amber-200 flex items-center gap-2";
+        resultBox.innerHTML = `<span>⏳ 正在向 Google 伺服器驗證金鑰響應...</span>`;
+        resultBox.classList.remove('hidden');
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mb-3.5">
-            <!-- 潛在危害 -->
-            <div class="bg-rose-50/60 p-3 rounded-xl border border-rose-100">
-              <span class="font-bold text-rose-800 flex items-center gap-1 mb-1.5">
-                <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                潛在危害風險：
-              </span>
-              <ul class="list-disc list-inside text-rose-700 space-y-1">
-                ${(step.hazardRisks || []).map(r => `<li>${r}</li>`).join('')}
-              </ul>
-            </div>
+        try {
+          const testModels = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+          let testSuccess = false;
+          let reply = "";
+          let lastErrCode = 0;
+          let lastErrMessage = "";
 
-            <!-- 工安防護對策 -->
-            <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-100">
-              <span class="font-bold text-amber-800 flex items-center gap-1 mb-1.5">
-                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                防護與管理標準：
-              </span>
-              <ul class="list-disc list-inside text-amber-900 space-y-1">
-                ${(step.safetyMeasures || []).map(s => `<li>${s}</li>`).join('')}
-              </ul>
-            </div>
+          for (const model of testModels) {
+            const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(testKey)}`;
+            const testPayload = {
+              contents: [{ parts: [{ text: "工程連線檢測，請簡短回應：OK" }] }]
+            };
 
-            <!-- 查驗要點 -->
-            <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
-              <span class="font-bold text-emerald-800 flex items-center gap-1 mb-1.5">
-                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                施工查驗點 (員工摸索重點)：
-              </span>
-              <ul class="list-disc list-inside text-emerald-900 space-y-1">
-                ${(step.inspectionPoints || []).map(p => `<li>${p}</li>`).join('')}
-              </ul>
-            </div>
-          </div>
+            const response = await fetch(testUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(testPayload)
+            });
 
-          <!-- 對應工具標籤 -->
-          <div class="flex items-center flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-            <span class="text-xs font-bold text-slate-500 mr-1">本工步工具：</span>
-            ${(step.tools || []).map(tool => `
-              <span class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-700 font-medium border border-slate-200/60">
-                🔧 ${tool}
-              </span>
-            `).join('')}
-          </div>
-        `;
+            if (response.ok) {
+              const data = await response.json();
+              reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "連線正常";
+              testSuccess = true;
+              break;
+            } else {
+              lastErrCode = response.status;
+              try {
+                const errJson = await response.json();
+                lastErrMessage = errJson.error?.message || "";
+              } catch (e) {}
+              if (response.status === 400 || response.status === 403) break;
+            }
+          }
 
-        container.appendChild(card);
+          if (testSuccess) {
+            resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-emerald-50 text-emerald-900 border border-emerald-300";
+            resultBox.innerHTML = `
+              <div class="flex items-start gap-2">
+                <span class="text-base">✅</span>
+                <div>
+                  <strong class="font-bold text-emerald-800">API 連線驗證成功！</strong>
+                  <p class="mt-1 text-emerald-700">Google Gemini 伺服器連線正常，可立即生成施工計畫與拆解機具清單。</p>
+                  <p class="text-[11px] text-emerald-600 mt-0.5">伺服器回應：${reply.trim()}</p>
+                </div>
+              </div>`;
+            userApiKey = testKey;
+            localStorage.setItem('GEMINI_API_KEY', userApiKey);
+            updateApiStatusBadge();
+          } else {
+            let diagnosticAdvice = "";
+            if (lastErrCode === 400) {
+              diagnosticAdvice = "金鑰格式不正確（可能有漏複製字元或包含了前後空白），請點選上方「顯示明碼」檢查金鑰。";
+            } else if (lastErrCode === 403) {
+              diagnosticAdvice = "<strong>權限被拒 (API_KEY_INVALID / Referrer Blocked)：</strong><br>1. 金鑰輸入錯誤或專案已被刪除。<br>2. <strong>最常見原因：</strong>若在 Google Cloud Console 設定了「網站網域限制」，請確認允許清單中是否已完整加入 <code>https://ollintsai.github.io/*</code>。";
+            } else if (lastErrCode === 404) {
+              diagnosticAdvice = "模型端點暫不可用或地區受限。";
+            } else if (lastErrCode === 429) {
+              diagnosticAdvice = "免費呼叫額度暫時超限（每分鐘超過 15 次），請稍候 1 分鐘後再試。";
+            } else {
+              diagnosticAdvice = lastErrMessage || "網路傳輸被封鎖或伺服器異常。";
+            }
+
+            resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-300";
+            resultBox.innerHTML = `
+              <div class="flex items-start gap-2">
+                <span class="text-base">❌</span>
+                <div>
+                  <strong class="font-bold text-rose-800">連線失敗 (錯誤代碼 HTTP ${lastErrCode})</strong>
+                  <div class="mt-1 text-rose-700 leading-relaxed">${diagnosticAdvice}</div>
+                  ${lastErrMessage ? `<p class="mt-1 text-[11px] text-rose-500 font-mono">Google 錯誤原文：${lastErrMessage}</p>` : ''}
+                </div>
+              </div>`;
+          }
+        } catch (netErr) {
+          resultBox.className = "mb-4 p-3.5 rounded-xl text-xs bg-rose-50 text-rose-900 border border-rose-300";
+          resultBox.innerHTML = `
+            <div class="flex items-start gap-2">
+              <span class="text-base">⚠️</span>
+              <div>
+                <strong class="font-bold text-rose-800">網路傳輸或跨域阻擋 (Fetch Error)</strong>
+                <p class="mt-1 text-rose-700">無法連線至 Google API 伺服器，請檢查您的瀏覽器是否有安裝 AdBlock 等擴充插件，或確認本機網路連線。</p>
+              </div>
+            </div>`;
+        } finally {
+          btnTest.disabled = false;
+          testSpinner.classList.add('hidden');
+          testBtnText.textContent = "⚡ 測試連線與檢測";
+        }
       });
     }
 
@@ -1550,30 +1754,6 @@
         console.error('複製失敗', err);
       }
       document.body.removeChild(textarea);
-    }
-
-    /* API KEY Modal 視窗操作 */
-    function initModal() {
-      const modal = document.getElementById('modal-api-config');
-      const btnOpen = document.getElementById('btn-api-config');
-      const btnClose = document.getElementById('btn-close-modal');
-      const btnSave = document.getElementById('btn-save-key');
-      const inputKey = document.getElementById('input-api-key');
-
-      btnOpen.addEventListener('click', () => {
-        inputKey.value = userApiKey;
-        modal.classList.remove('hidden');
-      });
-
-      btnClose.addEventListener('click', () => modal.classList.add('hidden'));
-
-      btnSave.addEventListener('click', () => {
-        userApiKey = inputKey.value.trim();
-        localStorage.setItem('GEMINI_API_KEY', userApiKey);
-        updateApiStatusBadge();
-        modal.classList.add('hidden');
-        showToast("API Key 設定已儲存！");
-      });
     }
 
     /* Toast 提示元件 */
