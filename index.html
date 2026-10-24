@@ -114,7 +114,7 @@
         </p>
       </div>
 
-      <!-- 快速範本 -->
+      <!-- 快速情境範本 -->
       <div class="flex flex-wrap items-center gap-2 pt-1">
         <span class="text-xs font-semibold text-slate-500">常見情境範本：</span>
         <button class="btn-preset text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200 transition">
@@ -130,14 +130,14 @@
 
       <!-- 輸入框 -->
       <div class="relative">
-        <textarea id="input-prompt" rows="5" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：下週二 10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。請預備 50 噸吊車、吊車腳座墊板、高空防墜雙掛勾、扭力扳手與防墜安全帶..."></textarea>
+        <textarea id="input-prompt" rows="6" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：下週二 10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。請預備 50 噸吊車、吊車腳座墊板、高空防墜雙掛勾、扭力扳手與防墜安全帶..."></textarea>
       </div>
 
       <!-- 操作按鈕 -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
         <span class="text-xs text-slate-500 flex items-center gap-1.5">
           <span class="inline-block w-2 h-2 rounded-full bg-safety-green"></span>
-          支援離線智慧解析與雲端 Gemini 雙引擎
+          支援離線工程引擎與雲端 Gemini 智慧轉換
         </span>
         <div class="flex items-center gap-3">
           <button id="btn-clear-input" class="touch-target px-4 py-2.5 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition">
@@ -188,7 +188,7 @@
       <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <h2 class="text-xl font-black text-slate-900">機具物料裝車・現場出退庫點檢表</h2>
-          <p class="text-xs text-slate-500 mt-1">平板觸控優化設計，支援點擊震動反饋與離線保存。</p>
+          <p class="text-xs text-slate-500 mt-1">平板大觸控設計，支援點擊震動反饋與離線保存。</p>
         </div>
         <div class="flex items-center gap-2">
           <button id="btn-reset-checklist" class="touch-target text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg border border-slate-300 transition">
@@ -258,7 +258,7 @@
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
         <div>
           <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-            🔑 Gemini API 密鑰設置與深度診斷
+            🔑 Gemini API 密鑰設置與模型切換
           </h3>
           <p class="text-xs text-slate-500 mt-0.5">金鑰僅存於瀏覽器本機 LocalStorage，絕不上傳第三方伺服器。</p>
         </div>
@@ -274,42 +274,42 @@
         <input type="password" id="input-api-key" class="w-full text-xs sm:text-sm font-mono p-3 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none" placeholder="AQ.Ab8RN6... 或 AIzaSy...">
       </div>
 
-      <!-- 模型選擇／自動偵測結果列 -->
+      <!-- 模型選擇列 -->
       <div class="flex flex-col gap-1.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
         <div class="flex justify-between items-center">
-          <label class="text-xs font-bold text-slate-700">使用的生成模型 (自動偵測或手動切換)：</label>
-          <span id="model-scan-status" class="text-[11px] font-semibold text-slate-500">待檢測</span>
+          <label class="text-xs font-bold text-slate-700">選擇生成模型 (建議優先使用 Gemini Flash 系列)：</label>
+          <span id="model-scan-status" class="text-[11px] font-semibold text-slate-500">建議選取 Flash 模型</span>
         </div>
         <div class="flex gap-2">
           <select id="select-active-model" class="flex-1 text-xs font-mono p-2 rounded-lg border border-slate-300 bg-white outline-none">
-            <option value="gemini-2.5-flash">gemini-2.5-flash (推薦主力)</option>
-            <option value="gemini-2.0-flash">gemini-2.0-flash (次世代高速)</option>
-            <option value="gemini-1.5-flash">gemini-1.5-flash (傳統穩定)</option>
-            <option value="gemini-2.5-pro">gemini-2.5-pro (深度邏輯)</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash (推薦主力首選)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (次世代高速穩定)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash (經典穩定)</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (深度推理)</option>
             <option value="custom">自訂模型代碼...</option>
           </select>
           <input type="text" id="input-custom-model" class="hidden flex-1 text-xs font-mono p-2 rounded-lg border border-slate-300 outline-none" placeholder="輸入自訂模型名稱">
         </div>
       </div>
 
-      <!-- 深度排查控制台日誌 -->
+      <!-- 排查控制台日誌 -->
       <div class="flex flex-col gap-1">
         <div class="flex justify-between items-center">
           <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             📟 深度排查診斷日誌 (Debug Console)
           </span>
           <button id="btn-copy-debug-log" class="text-[11px] text-brand-600 hover:text-brand-800 font-semibold hidden">
-            📋 複製完整診斷報告
+            📋 複製除錯日誌
           </button>
         </div>
-        <div id="debug-log-console" class="w-full h-44 bg-slate-950 text-slate-200 font-mono text-[11px] p-3 rounded-xl overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap select-text">點擊下方「⚡ 執行深度診斷測試」按鈕，系統將逐步連線並列出詳細握手封包與錯誤碼...</div>
+        <div id="debug-log-console" class="w-full h-40 bg-slate-950 text-slate-200 font-mono text-[11px] p-3 rounded-xl overflow-y-auto leading-relaxed border border-slate-800 whitespace-pre-wrap select-text">點擊下方「⚡ 執行連線診斷測試」按鈕，系統將自動掃描您帳號開放的全部模型並進行握手測試...</div>
       </div>
 
       <!-- 底部按鈕 -->
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
         <button id="btn-test-api" class="touch-target text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition shadow">
           <span id="test-spinner" class="hidden animate-spin">🔄</span>
-          <span>⚡ 執行深度診斷測試</span>
+          <span>⚡ 執行連線診斷測試</span>
         </button>
         <div class="flex items-center gap-2">
           <button id="btn-clear-api-key" class="text-xs text-red-600 hover:text-red-700 px-2 py-2">清除金鑰</button>
@@ -414,8 +414,7 @@
       apiKey: localStorage.getItem('gemini_api_key') || '',
       projects: [],
       currentProject: null,
-      selectedModel: localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash',
-      availableModels: []
+      selectedModel: localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash'
     };
 
     // 初始化載入
@@ -489,7 +488,7 @@
         p.addEventListener('click', () => {
           const text = p.textContent.trim();
           if (text.includes('日月潭')) {
-            textarea.value = "預計 2026/10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。現場需做好遊客動線管制，調派 50 噸輪胎式起重機，因臨湖土質需在腳座下鋪設厚鋼板與枕木防止翻覆。高空作業需備妥雙掛勾背負式安全帶、防墜母索、引導繩及扭力扳手。";
+            textarea.value = "我預計於11/3號進行日月潭智慧燈桿吊裝工程，施工順序及相關細節如下：\n1. 於早上0800開始進行整備及吊裝作業，主要會有一台大的吊卡車以及一台小的吊卡車進行作業，小調車主要安裝吊籠輔助人員可以上高空進行鎖固，相關的器具主要是布索、掛勾等相關吊掛器具\n2. 預計於中午1200前完成所有吊裝安裝作業，安裝主要所需要的器具包括大隻的活動扳手、衝擊起子以及各種號數的鎖固套筒\n3. 下午協助進行補漆及確認是否還有尚未完成需要補齊的地方\n4. 預計晚上1700完成施工";
           } else if (text.includes('小港機場')) {
             textarea.value = "預計 2026/12/21 夜間在高雄小港機場管制區航廈行李轉盤區進行金屬支架切除與更換。屬特種航空管制區作業，所有螺絲工具必須數量完全清點不遺留。切割動火作業必須滿鋪防火毯，備妥 20 型乾粉滅火器兩具與指派專責看火人監控。";
           } else {
@@ -499,7 +498,7 @@
       });
     }
 
-    // 核心：API 設定與深度診斷面板
+    // API 設定與診斷面板
     function initModal() {
       const modal = document.getElementById('modal-api');
       const btnOpen = document.getElementById('btn-open-api-modal');
@@ -516,7 +515,6 @@
 
       updateApiStatusBadge();
 
-      // 同步目前已儲存的 model
       if (appState.selectedModel) {
         let exists = false;
         for (let opt of selectModel.options) {
@@ -565,19 +563,19 @@
         appState.apiKey = val;
         localStorage.setItem('gemini_api_key', val);
 
-        const currentChosenModel = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
-        if (currentChosenModel) {
-          appState.selectedModel = currentChosenModel;
-          localStorage.setItem('gemini_selected_model', currentChosenModel);
+        const chosen = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
+        if (chosen) {
+          appState.selectedModel = chosen;
+          localStorage.setItem('gemini_selected_model', chosen);
         }
 
         updateApiStatusBadge();
         modal.classList.add('hidden');
-        showToast('API 參數與模型配置已儲存！');
+        showToast('API 設定與模型配置已儲存！');
       });
 
       btnClear.addEventListener('click', () => {
-        if (confirm('確定要清除儲存的金鑰與模型快取嗎？')) {
+        if (confirm('確定要清除儲存的金鑰與快取嗎？')) {
           inputKey.value = '';
           appState.apiKey = '';
           localStorage.removeItem('gemini_api_key');
@@ -589,162 +587,73 @@
 
       btnCopyDebug.addEventListener('click', () => {
         navigator.clipboard.writeText(debugConsole.innerText).then(() => {
-          showToast('已複製完整除錯日誌至剪貼簿！');
+          showToast('已複製除錯日誌！');
         });
       });
 
-      // 深度排查連線診斷核心
+      // 連線診斷測試
       btnTest.addEventListener('click', async () => {
         const rawKey = inputKey.value.trim();
         const spinner = document.getElementById('test-spinner');
         const statusSpan = document.getElementById('model-scan-status');
 
         if (!rawKey) {
-          debugConsole.innerText = '❌ [錯誤] API Key 欄位為空，請輸入有效金鑰。';
+          debugConsole.innerText = '❌ [錯誤] 請先輸入有效的 API Key。';
           return;
         }
 
         spinner.classList.remove('hidden');
         btnCopyDebug.classList.remove('hidden');
-        debugConsole.innerText = `[${new Date().toLocaleTimeString()}] 開始執行深度診斷測試...\n`;
+        debugConsole.innerText = `[${new Date().toLocaleTimeString()}] 開始連線診斷...\n`;
 
         function log(msg) {
           debugConsole.innerText += msg + "\n";
           debugConsole.scrollTop = debugConsole.scrollHeight;
         }
 
-        // 步驟 1: 金鑰基礎格式校驗
-        log(`▶ [步驟 1/4] 檢查金鑰字串格式...`);
-        const keyPrefix = rawKey.slice(0, 5);
-        const keyLen = rawKey.length;
-        log(`  - 長度：${keyLen} 字元`);
-        log(`  - 前綴代碼：${keyPrefix}...`);
-        if (rawKey.startsWith('AQ.')) {
-          log(`  - 格式識別：Google AI Studio 新版 Auth Key`);
-        } else if (rawKey.startsWith('AIza')) {
-          log(`  - 格式識別：Google Cloud 標準 Standard API Key`);
-        } else {
-          log(`  - ⚠️ 警告：前綴非標準格式 (通常為 AQ. 或 AIza)，請留意是否複製有缺漏。`);
-        }
+        log(`▶ 檢查金鑰：長度 ${rawKey.length} 字元，前綴 ${rawKey.slice(0, 5)}...`);
 
-        let detectedValidModel = null;
-
-        // 步驟 2: 查詢可用模型端點 (ListModels API)
-        log(`\n▶ [步驟 2/4] 向 Google 請求該帳號開通之可用模型清單 (ListModels)...`);
-        
         let modelsList = [];
-        const endpointsToTry = [
-          { ver: 'v1beta', url: `https://generativelanguage.googleapis.com/v1beta/models?key=${rawKey}` },
-          { ver: 'v1', url: `https://generativelanguage.googleapis.com/v1/models?key=${rawKey}` }
-        ];
-
-        let listSuccess = false;
-        for (const ep of endpointsToTry) {
-          try {
-            log(`  - 嘗試端點：${ep.ver} (GET /${ep.ver}/models)`);
-            const res = await fetch(ep.url);
-            log(`  - 回應 HTTP 狀態碼：${res.status} ${res.statusText}`);
-
-            const textBody = await res.text();
-            let parsedBody = {};
-            try { parsedBody = JSON.parse(textBody); } catch(e){}
-
-            if (res.ok) {
-              listSuccess = true;
-              const allModels = (parsedBody.models || []);
-              modelsList = allModels
-                .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-                .map(m => m.name.replace('models/', ''));
-
-              log(`  - ✅ 成功獲取模型！帳號支援 generateContent 模型共 ${modelsList.length} 個：`);
-              modelsList.forEach(m => log(`    • ${m}`));
-              break;
-            } else {
-              log(`  - ❌ 此端點返回錯誤：`);
-              log(`    ${JSON.stringify(parsedBody, null, 2)}`);
-              if (res.status === 403) {
-                log(`    💡 [排查建議] HTTP 403 代表被拒絕。請檢查是否於 Google Cloud 限制了 Referrer 網域，或專案未啟用 Generative Language API。`);
-              } else if (res.status === 404) {
-                log(`    💡 [排查建議] HTTP 404 通常表示網路 IP 受限 (例如開啟了香港/大陸地區 VPN 節點)，或該 API 版本端點不可用。`);
-              }
-            }
-          } catch (netErr) {
-            log(`  - ❌ 連線失敗 (可能為 CORS 或網路阻擋)：${netErr.message}`);
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${rawKey}`); const data = await res.json(); if (res.ok && data.models) { modelsList = data.models .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')) .map(m => m.name.replace('models/', '')); log(`▶ 成功獲取可用模型清單 (共 ${modelsList.length} 個)`);
+          } else {
+            log(`⚠️ ListModels 查詢受限 (HTTP ${res.status})：${data.error?.message || '繼續使用標準清單進行測試'}`);
           }
-        }
-
-        // 動態填充模型下拉選單
-        if (modelsList.length > 0) {
-          selectModel.innerHTML = '';
-          modelsList.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = m;
-            opt.textContent = m + (m.includes('flash') ? ' ⭐' : '');
-            selectModel.appendChild(opt);
-          });
-          statusSpan.innerText = `已探測到 ${modelsList.length} 個可用模型`;
+        } catch (e) {
+          log(`⚠️ 網路握手警告：${e.message}`); }  // 動態填充選單 (優先將 Gemini 放前方) if (modelsList.length > 0) { const geminiModels = modelsList.filter(m => m.toLowerCase().includes('gemini')); const otherModels = modelsList.filter(m => !m.toLowerCase().includes('gemini')); const sorted = [...geminiModels, ...otherModels];  selectModel.innerHTML = ''; sorted.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m + (m.includes('flash') ? ' ⭐ (推薦)' : ''); selectModel.appendChild(opt); }); statusSpan.innerText = `已探測到 ${modelsList.length} 個可用模型`;
           statusSpan.className = "text-[11px] font-bold text-safety-green";
         }
 
-        // 步驟 3: 依序測試呼叫 generateContent
-        log(`\n▶ [步驟 3/4] 執行真實生成握手測試 (generateContent)...`);
-        
-        // 優先挑選候選模型
+        // 測試呼叫模型
         const candidateModels = [];
-        const chosen = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
-        if (chosen) candidateModels.push(chosen);
-        if (modelsList.length > 0) {
-          modelsList.forEach(m => { if (!candidateModels.includes(m)) candidateModels.push(m); });
-        } else {
-          // 若 ListModels 失敗，嘗試常見模型回退清單
-          ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash-8b', 'gemini-1.5-flash'].forEach(m => {
-            if (!candidateModels.includes(m)) candidateModels.push(m);
-          });
-        }
+        const currentSelected = selectModel.value === 'custom' ? inputCustom.value.trim() : selectModel.value;
+        if (currentSelected) candidateModels.push(currentSelected);
 
-        let handshakeOk = false;
+        // 優先挑選 Flash 系列
+        ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].forEach(m => {
+          if (!candidateModels.includes(m)) candidateModels.push(m);
+        });
+
+        let successModel = null;
         for (const testModel of candidateModels) {
-          log(`  - 測試調用模型：[${testModel}]`);
-          const testEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${rawKey}`;
-          
-          try {
-            const testRes = await fetch(testEndpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: "Hello" }] }]
-              })
-            });
-
-            log(`    回應狀態：HTTP ${testRes.status}`);
-            const testJson = await testRes.json();
-
-            if (testRes.ok) {
-              log(`    ✅ 握手成功！模型 [${testModel}] 可正常輸出內容。`);
-              detectedValidModel = testModel;
-              handshakeOk = true;
+          log(`▶ 測試調用模型：[${testModel}]...`); try { const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${rawKey}`; const testRes = await fetch(testUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] }) });  if (testRes.ok) { log(`✅ 模型 [${testModel}] 測試成功，回應正常！`);
+              successModel = testModel;
               break;
             } else {
-              log(`    ❌ 呼叫失敗：${testJson.error?.message || testRes.statusText}`);
+              const errData = await testRes.json();
+              log(`❌ [${testModel}] 失敗：${errData.error?.message || testRes.statusText}`);
             }
-          } catch (testErr) {
-            log(`    ❌ 發送異常：${testErr.message}`);
-          }
-        }
-
-        // 步驟 4: 總結診斷報告
-        log(`\n▶ [步驟 4/4] 診斷總結...`);
-        if (handshakeOk && detectedValidModel) {
-          log(`🎉 【診斷合格】：API 連線無誤！系統已為您配對鎖定模型：${detectedValidModel}`);
-          selectModel.value = detectedValidModel;
+          } catch (netErr) {
+            log(`❌ 請求異常：${netErr.message}`); } }  if (successModel) { log(`\n🎉 【驗證合格】：已為您自動綁定模型：${successModel}`);
+          selectModel.value = successModel;
           appState.apiKey = rawKey;
-          appState.selectedModel = detectedValidModel;
+          appState.selectedModel = successModel;
           localStorage.setItem('gemini_api_key', rawKey);
-          localStorage.setItem('gemini_selected_model', detectedValidModel);
+          localStorage.setItem('gemini_selected_model', successModel);
           updateApiStatusBadge();
-          showToast('✅ 診斷合格，設定已自動保存！');
+          showToast('✅ API 驗證通過並已儲存！');
         } else {
-          log(`❌ 【診斷未通過】：無法順利調用模型。請依上述記錄之狀態碼與排查建議進行調整。`);
+          log(`\n❌ 未能找到可用模型，請確認金鑰權限或暫停 VPN 代理後再試。`);
         }
 
         spinner.classList.add('hidden');
@@ -756,108 +665,12 @@
       const text = document.getElementById('api-status-text');
       if (appState.apiKey && appState.apiKey.length > 10) {
         dot.className = "w-2.5 h-2.5 rounded-full bg-safety-green";
-        text.innerText = `API 就緒 (${appState.selectedModel || 'Gemini'})`;
-      } else {
-        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
-        text.innerText = "離線示範模式";
-      }
-    }
-
-    // 簽名板
-    let signatureCanvas, signatureCtx, isDrawing = false;
-    function initSignaturePad() {
-      signatureCanvas = document.getElementById('signature-pad');
-      if (!signatureCanvas) return;
-      signatureCtx = signatureCanvas.getContext('2d');
-
-      function startDraw(e) {
-        isDrawing = true;
-        const rect = signatureCanvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        signatureCtx.beginPath();
-        signatureCtx.moveTo(clientX - rect.left, clientY - rect.top);
-      }
-      function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const rect = signatureCanvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        signatureCtx.lineWidth = 2.5;
-        signatureCtx.lineCap = 'round';
-        signatureCtx.strokeStyle = '#0f172a';
-        signatureCtx.lineTo(clientX - rect.left, clientY - rect.top);
-        signatureCtx.stroke();
-      }
-      function endDraw() { isDrawing = false; }
-
-      signatureCanvas.addEventListener('mousedown', startDraw);
-      signatureCanvas.addEventListener('mousemove', draw);
-      signatureCanvas.addEventListener('mouseup', endDraw);
-      signatureCanvas.addEventListener('touchstart', startDraw, { passive: false });
-      signatureCanvas.addEventListener('touchmove', draw, { passive: false });
-      signatureCanvas.addEventListener('touchend', endDraw);
-
-      document.getElementById('btn-clear-sig').addEventListener('click', () => {
-        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-      });
-    }
-
-    function resizeSignaturePad() {
-      if (!signatureCanvas) return;
-      const rect = signatureCanvas.parentElement.getBoundingClientRect();
-      if (rect.width > 0 && signatureCanvas.width !== rect.width) {
-        signatureCanvas.width = rect.width;
-        signatureCanvas.height = 144;
-      }
-    }
-
-    // 按鈕監聽
-    function initButtons() {
-      document.getElementById('btn-clear-input').addEventListener('click', () => {
-        document.getElementById('input-prompt').value = '';
-      });
-
-      document.getElementById('btn-generate').addEventListener('click', handleGenerate);
-
-      document.getElementById('btn-copy-line').addEventListener('click', () => {
-        if (!appState.currentProject) return;
-        const p = appState.currentProject;
-        let lineText = `📢【施工計畫重點通報】\n📌 案場：${p.title}\n📅 日期：${p.date}\n📍 地點：${p.location}\n\n🚨【負責人安全紅線】\n${p.redlines}\n\n🛠️【主要工序摘要】\n`;
-        p.steps.forEach(s => {
-          lineText += `${s.stepNumber}. ${s.title} (${s.dangerLevel}風險)\n   ⚠️防護：${s.precautions}\n`;
-        });
-        lineText += `\n請帶班主管出工前確實驗收並落實清點！`;
-
-        navigator.clipboard.writeText(lineText).then(() => {
-          showToast('已複製 LINE 工務群格式重點！');
-        });
-      });
-
-      document.getElementById('btn-print').addEventListener('click', () => {
-        window.print();
-      });
-
-      document.getElementById('btn-reset-checklist').addEventListener('click', () => {
-        if (!appState.currentProject) return;
-        if (confirm('確定要重設該案的所有工具點檢狀態嗎？')) {
-          appState.currentProject.checklist.forEach(item => item.checked = false);
-          saveProjectsToStorage();
-          renderChecklist();
-        }
-      });
-
-      document.getElementById('btn-export-json').addEventListener('click', () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.projects, null, 2));
-        const dlAnchor = document.createElement('a');
-        dlAnchor.setAttribute("href", dataStr);
-        dlAnchor.setAttribute("download", `施工計畫案庫備份_${new Date().toISOString().slice(0,10)}.json`);
+        text.innerText = `API 就緒 (${appState.selectedModel \vert{}\vert{} 'Gemini'})`; } else { dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500"; text.innerText = "離線示範模式"; } }  // 簽名板 let signatureCanvas, signatureCtx, isDrawing = false; function initSignaturePad() { signatureCanvas = document.getElementById('signature-pad'); if (!signatureCanvas) return; signatureCtx = signatureCanvas.getContext('2d');  function startDraw(e) { isDrawing = true; const rect = signatureCanvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; signatureCtx.beginPath(); signatureCtx.moveTo(clientX - rect.left, clientY - rect.top); } function draw(e) { if (!isDrawing) return; e.preventDefault(); const rect = signatureCanvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; signatureCtx.lineWidth = 2.5; signatureCtx.lineCap = 'round'; signatureCtx.strokeStyle = '#0f172a'; signatureCtx.lineTo(clientX - rect.left, clientY - rect.top); signatureCtx.stroke(); } function endDraw() { isDrawing = false; }  signatureCanvas.addEventListener('mousedown', startDraw); signatureCanvas.addEventListener('mousemove', draw); signatureCanvas.addEventListener('mouseup', endDraw); signatureCanvas.addEventListener('touchstart', startDraw, { passive: false }); signatureCanvas.addEventListener('touchmove', draw, { passive: false }); signatureCanvas.addEventListener('touchend', endDraw);  document.getElementById('btn-clear-sig').addEventListener('click', () => { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); }); }  function resizeSignaturePad() { if (!signatureCanvas) return; const rect = signatureCanvas.parentElement.getBoundingClientRect(); if (rect.width > 0 && signatureCanvas.width !== rect.width) { signatureCanvas.width = rect.width; signatureCanvas.height = 144; } }  // 操作按鈕事件監聽 function initButtons() { document.getElementById('btn-clear-input').addEventListener('click', () => { document.getElementById('input-prompt').value = ''; });  document.getElementById('btn-generate').addEventListener('click', handleGenerate);  document.getElementById('btn-copy-line').addEventListener('click', () => { if (!appState.currentProject) return; const p = appState.currentProject; let lineText = `📢【施工計畫重點通報】\n📌 案場：${p.title}\n📅 日期：${p.date}\n📍 地點：${p.location}\n\n🚨【負責人安全紅線】\n${p.redlines}\n\n🛠️【主要工序摘要】\n`; p.steps.forEach(s => { lineText += `${s.stepNumber}. ${s.title} (${s.dangerLevel}風險)\n   ⚠️防護：${s.precautions}\n`; }); lineText += `\n請帶班主管出工前確實驗收並落實清點！`;  navigator.clipboard.writeText(lineText).then(() => { showToast('已複製 LINE 工務群格式重點！'); }); });  document.getElementById('btn-print').addEventListener('click', () => { window.print(); });  document.getElementById('btn-reset-checklist').addEventListener('click', () => { if (!appState.currentProject) return; if (confirm('確定要重設該案的所有工具點檢狀態嗎？')) { appState.currentProject.checklist.forEach(item => item.checked = false); saveProjectsToStorage(); renderChecklist(); } });  document.getElementById('btn-export-json').addEventListener('click', () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.projects, null, 2)); const dlAnchor = document.createElement('a'); dlAnchor.setAttribute("href", dataStr); dlAnchor.setAttribute("download", `施工計畫案庫備份_${new Date().toISOString().slice(0,10)}.json`);
         dlAnchor.click();
       });
     }
 
-    // 生成施工計畫核心邏輯
+    // 生成施工計畫核心流程
     async function handleGenerate() {
       const promptText = document.getElementById('input-prompt').value.trim();
       if (!promptText) {
@@ -900,21 +713,27 @@
       }
     }
 
-    // 調用 Gemini API 生成結構化資料
+    // 調用 Gemini API（含智慧過濾多餘文字與強健容錯提取）
     async function generatePlanWithGemini(prompt) {
-      const model = appState.selectedModel || 'gemini-2.5-flash';
+      let model = appState.selectedModel || 'gemini-2.5-flash';
+      // 若先前選到了 gemma，強制自動替換為 gemini-2.5-flash
+      if (model.toLowerCase().includes('gemma')) {
+        model = 'gemini-2.5-flash';
+        appState.selectedModel = model;
+        localStorage.setItem('gemini_selected_model', model);
+      }
       const key = appState.apiKey;
 
       const systemInstruction = `
-你是一位具備現場施工管理與職業安全衛生經驗的工務主管。
-請根據負責人的口語交代，輸出結構化繁體中文 JSON，不得包含 markdown 標籤或無關文字。
+你是一位具備 30 年現場工務主管與勞安專家經驗的資深工程師。
+請根據負責人的口語交代，輸出專業施工計畫，直接輸出標準 JSON，不得包含 markdown 語法（如 \`\`\`json），不可輸出任何前言、開場白（例如 Site Supervision...）或結論。
 
-JSON 格式規範：
+JSON 結構規範：
 {
   "title": "YYYYMMDD_案場簡稱",
   "date": "YYYY-MM-DD",
   "location": "具體案場地點",
-  "redlines": "負責人嚴格宣示的安全紅線 (條列 2-3 項重點)",
+  "redlines": "負責人嚴格宣示的安全紅線 (條列 2-3 項極致重點)",
   "steps": [
     {
       "stepNumber": 1,
@@ -928,7 +747,7 @@ JSON 格式規範：
   ],
   "checklist": [
     {
-      "category": "分類名稱 (如：個人防護具/動力機具/手工具/量測與檢驗/交管與工安)",
+      "category": "分類名稱 (如：車輛與吊裝/個人安全防護/手工具與鎖固/工安交管/現場復原)",
       "name": "器具完整名稱與規格數量",
       "checked": false
     }
@@ -938,7 +757,7 @@ JSON 格式規範：
 
       const requestBody = {
         contents: [
-          { role: "user", parts: [{ text: `【口語交辦事項】：\n${prompt}` }] }
+          { role: "user", parts: [{ text: `【負責人口語交辦任務】：\n${prompt}` }] }
         ],
         systemInstruction: { parts: [{ text: systemInstruction }] },
         generationConfig: {
@@ -960,67 +779,83 @@ JSON 格式規範：
       }
 
       const resData = await response.json();
-      const rawText = resData.candidates[0].content.parts[0].text;
-      const parsed = JSON.parse(rawText);
+      let rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      // 核心升級：強固 JSON 提取器（自動移除開場白、結尾說明與 Markdown 包裝）
+      let cleaned = rawText.trim();
+      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
+
+      const firstBrace = cleaned.indexOf('{');
+      const lastBrace = cleaned.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+      }
+
+      const parsed = JSON.parse(cleaned);
       parsed.id = "proj_" + Date.now();
       return parsed;
     }
 
-    // 離線工程解析備用機制
+    // 離線工程智慧解析機制
     function generateOfflinePlan(prompt) {
       const dateMatch = prompt.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/) || prompt.match(/\d{1,2}月\d{1,2}號?日?/);
       const dateStr = dateMatch ? dateMatch[0].replace(/號|日/, '').replace(/[\/月]/g, '-') : new Date().toISOString().slice(0,10);
-      const cleanDate = dateStr.length === 5 ? `2026-${dateStr}` : dateStr;
+      const cleanDate = dateStr.length === 5 ? `2026-${dateStr}` : (dateStr.length === 4 ? `2026-0${dateStr}` : dateStr);
       const formattedDateId = cleanDate.replace(/-/g, '');
 
-      let title = `${formattedDateId}_案場自訂派工計畫`;
-      if (prompt.includes('吊裝') || prompt.includes('吊車')) title = `${formattedDateId}_鋼構與重型機械吊裝案`;
-      else if (prompt.includes('防水') || prompt.includes('外牆')) title = `${formattedDateId}_高空外牆防墜與防水施工案`;
+      let title = `${formattedDateId}_案場施工派工計畫`;
+      if (prompt.includes('吊裝') || prompt.includes('吊車')) title = `${formattedDateId}_燈桿吊裝與高空作業案`;
+      else if (prompt.includes('防水') || prompt.includes('外牆')) title = `${formattedDateId}_高空外牆防水防墜案`;
       else if (prompt.includes('焊接') || prompt.includes('風管')) title = `${formattedDateId}_通風管路焊接與侷限空間安裝案`;
 
       return {
         id: "proj_" + Date.now(),
         title: title,
         date: cleanDate,
-        location: prompt.slice(0, 20) + "（現場確認）",
-        redlines: "1. 嚴禁任何無防墜措施下從事高空作業。\n2. 動火及臨時用電必須配置漏電斷路器與防焰毯。\n3. 進場人員確實穿戴符合規範之反光背心與合格工程帽。",
+        location: prompt.slice(0, 16) + "（案發現場）",
+        redlines: "1. 吊卡車吊臂迴轉半徑內嚴禁任何人員逗留。\n2. 吊籠高空作業人員必須 100% 雙掛勾扣妥於獨立防墜母索。\n3. 高空鎖固手工具必須全面繫掛防墜失手繩，嚴防砸傷。",
         steps: [
           {
             stepNumber: 1,
-            title: "現場作業環境點檢與警戒隔離",
+            title: "作業動線交管劃設與大/小吊卡車就位整備",
             dangerLevel: "中",
-            hazards: "非作業人員誤入動線、現場通道障礙",
-            precautions: "以警示帶與交通錐確實隔離動線，確認進場出入口暢通無阻。",
-            checkpoints: "確實巡檢周遭管線與地面承重狀況。",
-            tools: ["高反光交通錐 x 6", "黃黑警示連桿 x 4", "反光指揮背心 x 4"]
+            hazards: "車行動線衝突、遊客擅入、起重機腳座地質壓陷",
+            precautions: "以三角錐與警示連桿隔離 15 米作業半徑，吊卡車外伸撐座全伸並加墊枕木/鋼板。",
+            checkpoints: "確認旋轉半徑淨空，支撐腳座氣泡水平居中且插銷鎖固。",
+            tools: ["交通錐 x 10", "警示連桿 x 6", "支撐腳座鋼板/枕木 x 4", "反光指揮棒 x 2"]
           },
           {
             stepNumber: 2,
-            title: "主體結構安裝與固定作業",
+            title: "燈桿吊裝組對與高空吊籠乘載鎖固",
             dangerLevel: "高",
-            hazards: "高空墜落、重物夾砸傷、手工具失手掉落",
-            precautions: "作業人員五點式雙掛勾防墜安全帶確實懸掛於結構母索上，手工具全面綁定防墜手繩。",
-            checkpoints: "螺栓扭力值依規範施擰，扣件無鬆動。",
-            tools: ["五點式背負安全帶 x 4", "手工具防墜失手繩 x 6", "充電式衝擊扳手 x 2"]
+            hazards: "吊籠傾斜墜落、布索磨損斷裂、手工具高空飛落",
+            precautions: "使用檢驗合格吊掛布索與卸扣；乘籠人員配戴雙大掛勾五點式安全帶，手工具繫防墜手繩。",
+            checkpoints: "螺栓先手動預鎖後以衝擊起子及活動扳手施擰至指定扭力，確認吊籠安全門關閉栓妥。",
+            tools: ["高強度起重布索組 x 2", "大號活動扳手 x 2", "充電式衝擊起子機 x 2", "各種號數鎖固套筒組 x 1", "背負式安全帶含雙掛勾 x 2", "工具防墜繩 x 4"]
           },
           {
             stepNumber: 3,
-            title: "完工自主驗收與工具 100% 撤場清點",
+            title: "燈桿接縫補漆防鏽與現場 5S 清點復原",
             dangerLevel: "低",
-            hazards: "工具或金屬廢料遺留現場衍生危險",
-            precautions: "落實 5S 清理，點對點核對工具箱所有編號器具數量。",
-            checkpoints: "現場廢料清理裝袋，確認無任何物品遺留。",
-            tools: ["手持工業吸塵器/掃具 x 1", "重合型工具清點箱 x 2"]
+            hazards: "漆料溶劑噴濺眼睛、工具零件遺漏造成行人危害",
+            precautions: "配戴護目鏡與防溶劑手套進行修補漆，現場進行點對點金屬廢料與套筒數量清點。",
+            checkpoints: "確認所有螺栓皆已確實上漆防鏽，工具清冊品項 100% 回裝裝車。",
+            tools: ["防鏽專用修補漆 x 2罐", "補漆刷具組 x 2", "防護眼鏡 x 2", "零件盤點盒 x 1", "現場清理掃具 x 1"]
           }
         ],
         checklist: [
-          { category: "安全防護與 PPE", name: "符合 CNS 規範背負式五點安全帶 (含雙掛勾)", checked: false },
-          { category: "安全防護與 PPE", name: "合格工程安全帽含耐磨下巴帶", checked: true },
-          { category: "安全防護與 PPE", name: "高透氣防滑耐磨作業手套", checked: true },
-          { category: "動力與電動工具", name: "大扭力充電式衝擊扳手 (含備用電池 2 顆)", checked: false },
-          { category: "工安與現場隔離", name: "反光警示交通錐與連桿組", checked: true },
-          { category: "量測與自主檢查", name: "標準扭力值檢驗扳手與套筒組", checked: false },
-          { category: "現場清潔與廢料", name: "工地專用加厚防穿刺垃圾袋與清理掃具", checked: false }
+          { category: "車輛與大型吊裝", name: "大吊卡車與起重證照", checked: false },
+          { category: "車輛與大型吊裝", name: "小吊卡車及合格附掛吊籠", checked: false },
+          { category: "車輛與大型吊裝", name: "合格起重布索、掛勾與卸扣組", checked: false },
+          { category: "車輛與大型吊裝", name: "外伸撐座厚鋼板/枕木墊板", checked: true },
+          { category: "鎖固與動力手工具", name: "大尺寸重型活動扳手 (2支)", checked: false },
+          { category: "鎖固與動力手工具", name: "大扭力充電式衝擊起子機 (含備用電池)", checked: false },
+          { category: "鎖固與動力手工具", name: "各種號數專用鎖固套筒組", checked: false },
+          { category: "高空作業與 PPE", name: "符合 CNS 規範五點背負式安全帶 (雙掛勾)", checked: true },
+          { category: "高空作業與 PPE", name: "工程安全帽 (含透氣下巴帶)", checked: true },
+          { category: "高空作業與 PPE", name: "手工具防墜彈簧失手繩 (4條)", checked: false },
+          { category: "防鏽補漆與清潔", name: "修補漆、毛刷與稀釋劑", checked: false },
+          { category: "工安交管與標示", name: "反光交通錐與連桿組 (10套)", checked: true }
         ]
       };
     }
