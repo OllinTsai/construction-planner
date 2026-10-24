@@ -130,7 +130,7 @@
 
       <!-- 輸入框 -->
       <div class="relative">
-        <textarea id="input-prompt" rows="6" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：下週二 10/24 早上8點在日月潭遊客中心後棟進行頂樓景觀平台大型 H 型鋼構吊裝工程。請預備 50 噸吊車、吊車腳座墊板、高空防墜雙掛勾、扭力扳手與防墜安全帶..."></textarea>
+        <textarea id="input-prompt" rows="6" class="w-full rounded-xl border border-slate-300 p-4 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition placeholder-slate-400" placeholder="例如：我預計於11/3號進行日月潭智慧燈桿吊裝工程，主要會有一台大吊卡車與一台小吊卡車..."></textarea>
       </div>
 
       <!-- 操作按鈕 -->
@@ -179,7 +179,7 @@
         <p class="text-xs text-amber-800 mt-1 leading-relaxed" id="label-plan-redlines"></p>
       </div>
 
-      <!-- 工序與危害卡片容器 -->
+      <!-- 工序卡片容器 -->
       <div id="steps-container" class="flex flex-col gap-4"></div>
     </section>
 
@@ -417,15 +417,19 @@
       selectedModel: localStorage.getItem('gemini_selected_model') || 'gemini-2.5-flash'
     };
 
-    // 初始化載入
+    // 初始化入口
     document.addEventListener('DOMContentLoaded', () => {
-      loadProjectsFromStorage();
-      initTabs();
-      initModal();
-      initPresets();
-      initSignaturePad();
-      initButtons();
-      renderAll();
+      try {
+        loadProjectsFromStorage();
+        initTabs();
+        initModal();
+        initPresets();
+        initSignaturePad();
+        initButtons();
+        renderAll();
+      } catch (err) {
+        console.error("系統初始化發生錯誤:", err);
+      }
     });
 
     function loadProjectsFromStorage() {
@@ -440,7 +444,7 @@
         appState.projects = PRESET_PROJECTS;
         saveProjectsToStorage();
       }
-      appState.currentProject = appState.projects[0];
+      appState.currentProject = appState.projects && appState.projects.length > 0 ? appState.projects[0] : PRESET_PROJECTS[0];
     }
 
     function saveProjectsToStorage() {
@@ -604,23 +608,45 @@
 
         spinner.classList.remove('hidden');
         btnCopyDebug.classList.remove('hidden');
-        debugConsole.innerText = `[${new Date().toLocaleTimeString()}] 開始連線診斷...\n`;
+        debugConsole.innerText = '[' + new Date().toLocaleTimeString() + '] 開始連線診斷...\n';
 
         function log(msg) {
           debugConsole.innerText += msg + "\n";
           debugConsole.scrollTop = debugConsole.scrollHeight;
         }
 
-        log(`▶ 檢查金鑰：長度 ${rawKey.length} 字元，前綴 ${rawKey.slice(0, 5)}...`);
+        log('▶ 檢查金鑰：長度 ' + rawKey.length + ' 字元，前綴 ' + rawKey.slice(0, 5) + '...');
 
         let modelsList = [];
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${rawKey}`); const data = await res.json(); if (res.ok && data.models) { modelsList = data.models .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')) .map(m => m.name.replace('models/', '')); log(`▶ 成功獲取可用模型清單 (共 ${modelsList.length} 個)`);
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + rawKey);
+          const data = await res.json();
+          if (res.ok && data.models) {
+            modelsList = data.models
+              .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+              .map(m => m.name.replace('models/', ''));
+            log('▶ 成功獲取可用模型清單 (共 ' + modelsList.length + ' 個)');
           } else {
-            log(`⚠️ ListModels 查詢受限 (HTTP ${res.status})：${data.error?.message || '繼續使用標準清單進行測試'}`);
+            log('⚠️ ListModels 查詢受限 (HTTP ' + res.status + ')：' + (data.error?.message || '繼續使用標準清單進行測試'));
           }
         } catch (e) {
-          log(`⚠️ 網路握手警告：${e.message}`); }  // 動態填充選單 (優先將 Gemini 放前方) if (modelsList.length > 0) { const geminiModels = modelsList.filter(m => m.toLowerCase().includes('gemini')); const otherModels = modelsList.filter(m => !m.toLowerCase().includes('gemini')); const sorted = [...geminiModels, ...otherModels];  selectModel.innerHTML = ''; sorted.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m + (m.includes('flash') ? ' ⭐ (推薦)' : ''); selectModel.appendChild(opt); }); statusSpan.innerText = `已探測到 ${modelsList.length} 個可用模型`;
+          log('⚠️ 網路握手警告：' + e.message);
+        }
+
+        // 動態填充選單 (優先將 Gemini 放前方)
+        if (modelsList.length > 0) {
+          const geminiModels = modelsList.filter(m => m.toLowerCase().includes('gemini'));
+          const otherModels = modelsList.filter(m => !m.toLowerCase().includes('gemini'));
+          const sorted = [...geminiModels, ...otherModels];
+
+          selectModel.innerHTML = '';
+          sorted.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m + (m.includes('flash') ? ' ⭐ (推薦)' : '');
+            selectModel.appendChild(opt);
+          });
+          statusSpan.innerText = '已探測到 ' + modelsList.length + ' 個可用模型';
           statusSpan.className = "text-[11px] font-bold text-safety-green";
         }
 
@@ -636,15 +662,30 @@
 
         let successModel = null;
         for (const testModel of candidateModels) {
-          log(`▶ 測試調用模型：[${testModel}]...`); try { const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent?key=${rawKey}`; const testRes = await fetch(testUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] }) });  if (testRes.ok) { log(`✅ 模型 [${testModel}] 測試成功，回應正常！`);
+          log('▶ 測試調用模型：[' + testModel + ']...');
+          try {
+            const testUrl = 'https://generativelanguage.googleapis.com/v1beta/models/' + testModel + ':generateContent?key=' + rawKey;
+            const testRes = await fetch(testUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] })
+            });
+
+            if (testRes.ok) {
+              log('✅ 模型 [' + testModel + '] 測試成功，回應正常！');
               successModel = testModel;
               break;
             } else {
               const errData = await testRes.json();
-              log(`❌ [${testModel}] 失敗：${errData.error?.message || testRes.statusText}`);
+              log('❌ [' + testModel + '] 失敗：' + (errData.error?.message || testRes.statusText));
             }
           } catch (netErr) {
-            log(`❌ 請求異常：${netErr.message}`); } }  if (successModel) { log(`\n🎉 【驗證合格】：已為您自動綁定模型：${successModel}`);
+            log('❌ 請求異常：' + netErr.message);
+          }
+        }
+
+        if (successModel) {
+          log('\n🎉 【驗證合格】：已為您自動綁定模型：' + successModel);
           selectModel.value = successModel;
           appState.apiKey = rawKey;
           appState.selectedModel = successModel;
@@ -653,7 +694,7 @@
           updateApiStatusBadge();
           showToast('✅ API 驗證通過並已儲存！');
         } else {
-          log(`\n❌ 未能找到可用模型，請確認金鑰權限或暫停 VPN 代理後再試。`);
+          log('\n❌ 未能找到可用模型，請確認金鑰權限或暫停 VPN 代理後再試。');
         }
 
         spinner.classList.add('hidden');
@@ -665,7 +706,107 @@
       const text = document.getElementById('api-status-text');
       if (appState.apiKey && appState.apiKey.length > 10) {
         dot.className = "w-2.5 h-2.5 rounded-full bg-safety-green";
-        text.innerText = `API 就緒 (${appState.selectedModel \vert{}\vert{} 'Gemini'})`; } else { dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500"; text.innerText = "離線示範模式"; } }  // 簽名板 let signatureCanvas, signatureCtx, isDrawing = false; function initSignaturePad() { signatureCanvas = document.getElementById('signature-pad'); if (!signatureCanvas) return; signatureCtx = signatureCanvas.getContext('2d');  function startDraw(e) { isDrawing = true; const rect = signatureCanvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; signatureCtx.beginPath(); signatureCtx.moveTo(clientX - rect.left, clientY - rect.top); } function draw(e) { if (!isDrawing) return; e.preventDefault(); const rect = signatureCanvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; signatureCtx.lineWidth = 2.5; signatureCtx.lineCap = 'round'; signatureCtx.strokeStyle = '#0f172a'; signatureCtx.lineTo(clientX - rect.left, clientY - rect.top); signatureCtx.stroke(); } function endDraw() { isDrawing = false; }  signatureCanvas.addEventListener('mousedown', startDraw); signatureCanvas.addEventListener('mousemove', draw); signatureCanvas.addEventListener('mouseup', endDraw); signatureCanvas.addEventListener('touchstart', startDraw, { passive: false }); signatureCanvas.addEventListener('touchmove', draw, { passive: false }); signatureCanvas.addEventListener('touchend', endDraw);  document.getElementById('btn-clear-sig').addEventListener('click', () => { signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height); }); }  function resizeSignaturePad() { if (!signatureCanvas) return; const rect = signatureCanvas.parentElement.getBoundingClientRect(); if (rect.width > 0 && signatureCanvas.width !== rect.width) { signatureCanvas.width = rect.width; signatureCanvas.height = 144; } }  // 操作按鈕事件監聽 function initButtons() { document.getElementById('btn-clear-input').addEventListener('click', () => { document.getElementById('input-prompt').value = ''; });  document.getElementById('btn-generate').addEventListener('click', handleGenerate);  document.getElementById('btn-copy-line').addEventListener('click', () => { if (!appState.currentProject) return; const p = appState.currentProject; let lineText = `📢【施工計畫重點通報】\n📌 案場：${p.title}\n📅 日期：${p.date}\n📍 地點：${p.location}\n\n🚨【負責人安全紅線】\n${p.redlines}\n\n🛠️【主要工序摘要】\n`; p.steps.forEach(s => { lineText += `${s.stepNumber}. ${s.title} (${s.dangerLevel}風險)\n   ⚠️防護：${s.precautions}\n`; }); lineText += `\n請帶班主管出工前確實驗收並落實清點！`;  navigator.clipboard.writeText(lineText).then(() => { showToast('已複製 LINE 工務群格式重點！'); }); });  document.getElementById('btn-print').addEventListener('click', () => { window.print(); });  document.getElementById('btn-reset-checklist').addEventListener('click', () => { if (!appState.currentProject) return; if (confirm('確定要重設該案的所有工具點檢狀態嗎？')) { appState.currentProject.checklist.forEach(item => item.checked = false); saveProjectsToStorage(); renderChecklist(); } });  document.getElementById('btn-export-json').addEventListener('click', () => { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.projects, null, 2)); const dlAnchor = document.createElement('a'); dlAnchor.setAttribute("href", dataStr); dlAnchor.setAttribute("download", `施工計畫案庫備份_${new Date().toISOString().slice(0,10)}.json`);
+        text.innerText = 'API 就緒 (' + (appState.selectedModel || 'Gemini') + ')';
+      } else {
+        dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+        text.innerText = "離線示範模式";
+      }
+    }
+
+    // 簽名板
+    let signatureCanvas, signatureCtx, isDrawing = false;
+    function initSignaturePad() {
+      signatureCanvas = document.getElementById('signature-pad');
+      if (!signatureCanvas) return;
+      signatureCtx = signatureCanvas.getContext('2d');
+
+      function startDraw(e) {
+        isDrawing = true;
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        signatureCtx.beginPath();
+        signatureCtx.moveTo(clientX - rect.left, clientY - rect.top);
+      }
+      function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        signatureCtx.lineWidth = 2.5;
+        signatureCtx.lineCap = 'round';
+        signatureCtx.strokeStyle = '#0f172a';
+        signatureCtx.lineTo(clientX - rect.left, clientY - rect.top);
+        signatureCtx.stroke();
+      }
+      function endDraw() { isDrawing = false; }
+
+      signatureCanvas.addEventListener('mousedown', startDraw);
+      signatureCanvas.addEventListener('mousemove', draw);
+      signatureCanvas.addEventListener('mouseup', endDraw);
+      signatureCanvas.addEventListener('touchstart', startDraw, { passive: false });
+      signatureCanvas.addEventListener('touchmove', draw, { passive: false });
+      signatureCanvas.addEventListener('touchend', endDraw);
+
+      document.getElementById('btn-clear-sig').addEventListener('click', () => {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      });
+    }
+
+    function resizeSignaturePad() {
+      if (!signatureCanvas) return;
+      const rect = signatureCanvas.parentElement.getBoundingClientRect();
+      if (rect.width > 0 && signatureCanvas.width !== rect.width) {
+        signatureCanvas.width = rect.width;
+        signatureCanvas.height = 144;
+      }
+    }
+
+    // 操作按鈕事件監聽
+    function initButtons() {
+      document.getElementById('btn-clear-input').addEventListener('click', () => {
+        document.getElementById('input-prompt').value = '';
+      });
+
+      document.getElementById('btn-generate').addEventListener('click', handleGenerate);
+
+      document.getElementById('btn-copy-line').addEventListener('click', () => {
+        if (!appState.currentProject) return;
+        const p = appState.currentProject;
+        let lineText = '📢【施工計畫重點通報】\n📌 案場：' + p.title + '\n📅 日期：' + p.date + '\n📍 地點：' + p.location + '\n\n🚨【負責人安全紅線】\n' + (p.redlines || '') + '\n\n🛠️【主要工序摘要】\n';
+        if (p.steps && Array.isArray(p.steps)) {
+          p.steps.forEach(s => {
+            lineText += s.stepNumber + '. ' + s.title + ' (' + s.dangerLevel + '風險)\n   ⚠️防護：' + s.precautions + '\n';
+          });
+        }
+        lineText += '\n請帶班主管出工前確實驗收並落實清點！';
+
+        navigator.clipboard.writeText(lineText).then(() => {
+          showToast('已複製 LINE 工務群格式重點！');
+        });
+      });
+
+      document.getElementById('btn-print').addEventListener('click', () => {
+        window.print();
+      });
+
+      document.getElementById('btn-reset-checklist').addEventListener('click', () => {
+        if (!appState.currentProject) return;
+        if (confirm('確定要重設該案的所有工具點檢狀態嗎？')) {
+          if (appState.currentProject.checklist) {
+            appState.currentProject.checklist.forEach(item => item.checked = false);
+          }
+          saveProjectsToStorage();
+          renderChecklist();
+        }
+      });
+
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState.projects, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", '施工計畫案庫備份_' + new Date().toISOString().slice(0,10) + '.json');
         dlAnchor.click();
       });
     }
@@ -700,7 +841,7 @@
         showToast('施工計畫與表單已生成完畢！');
       } catch (err) {
         console.error(err);
-        alert(`雲端生成異常：${err.message}\n已自動為您轉入「離線工程解析引擎」生成標準計畫。`);
+        alert('雲端生成異常：' + err.message + '\n已自動為您轉入「離線工程解析引擎」生成標準計畫。');
         const fallbackPlan = generateOfflinePlan(promptText);
         appState.projects.unshift(fallbackPlan);
         appState.currentProject = fallbackPlan;
@@ -713,10 +854,9 @@
       }
     }
 
-    // 調用 Gemini API（含智慧過濾多餘文字與強健容錯提取）
+    // 調用 Gemini API（含雙重容錯與精準 JSON 截取）
     async function generatePlanWithGemini(prompt) {
       let model = appState.selectedModel || 'gemini-2.5-flash';
-      // 若先前選到了 gemma，強制自動替換為 gemini-2.5-flash
       if (model.toLowerCase().includes('gemma')) {
         model = 'gemini-2.5-flash';
         appState.selectedModel = model;
@@ -724,40 +864,38 @@
       }
       const key = appState.apiKey;
 
-      const systemInstruction = `
-你是一位具備 30 年現場工務主管與勞安專家經驗的資深工程師。
-請根據負責人的口語交代，輸出專業施工計畫，直接輸出標準 JSON，不得包含 markdown 語法（如 \`\`\`json），不可輸出任何前言、開場白（例如 Site Supervision...）或結論。
-
-JSON 結構規範：
-{
-  "title": "YYYYMMDD_案場簡稱",
-  "date": "YYYY-MM-DD",
-  "location": "具體案場地點",
-  "redlines": "負責人嚴格宣示的安全紅線 (條列 2-3 項極致重點)",
-  "steps": [
-    {
-      "stepNumber": 1,
-      "title": "工步名稱",
-      "dangerLevel": "高 / 中 / 低",
-      "hazards": "潛在危害分析",
-      "precautions": "防範作為與標準施工工法",
-      "checkpoints": "帶班人員自主驗收與查驗紅線",
-      "tools": ["工具名稱與規格數量"]
-    }
-  ],
-  "checklist": [
-    {
-      "category": "分類名稱 (如：車輛與吊裝/個人安全防護/手工具與鎖固/工安交管/現場復原)",
-      "name": "器具完整名稱與規格數量",
-      "checked": false
-    }
-  ]
-}
-`;
+      const systemInstruction = 
+        "你是一位具備30年現場工務主管與勞安專家經驗的資深工程師。\n" +
+        "請根據負責人的口語交代，輸出專業施工計畫，直接輸出標準 JSON，絕對不要輸出任何 markdown 標籤或對話開場白。\n\n" +
+        "JSON 結構範例：\n" +
+        "{\n" +
+        '  "title": "YYYYMMDD_案場簡稱",\n' +
+        '  "date": "YYYY-MM-DD",\n' +
+        '  "location": "具體案場地點",\n' +
+        '  "redlines": "負責人嚴格宣示的安全紅線 (條列 2-3 項極致重點)",\n' +
+        '  "steps": [\n' +
+        '    {\n' +
+        '      "stepNumber": 1,\n' +
+        '      "title": "工步名稱",\n' +
+        '      "dangerLevel": "高 / 中 / 低",\n' +
+        '      "hazards": "潛在危害分析",\n' +
+        '      "precautions": "防範作為與標準施工工法",\n' +
+        '      "checkpoints": "帶班人員自主驗收與查驗紅線",\n' +
+        '      "tools": ["工具名稱與規格數量"]\n' +
+        '    }\n' +
+        '  ],\n' +
+        '  "checklist": [\n' +
+        '    {\n' +
+        '      "category": "分類名稱",\n' +
+        '      "name": "器具完整名稱與規格數量",\n' +
+        '      "checked": false\n' +
+        '    }\n' +
+        '  ]\n' +
+        "}";
 
       const requestBody = {
         contents: [
-          { role: "user", parts: [{ text: `【負責人口語交辦任務】：\n${prompt}` }] }
+          { role: "user", parts: [{ text: "【負責人口語交辦任務】：\n" + prompt }] }
         ],
         systemInstruction: { parts: [{ text: systemInstruction }] },
         generationConfig: {
@@ -766,7 +904,7 @@ JSON 結構規範：
         }
       };
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key;
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -781,10 +919,8 @@ JSON 結構規範：
       const resData = await response.json();
       let rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
-      // 核心升級：強固 JSON 提取器（自動移除開場白、結尾說明與 Markdown 包裝）
+      // 容錯清洗器：精準提取最外層大括號內容
       let cleaned = rawText.trim();
-      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
-
       const firstBrace = cleaned.indexOf('{');
       const lastBrace = cleaned.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -800,13 +936,13 @@ JSON 結構規範：
     function generateOfflinePlan(prompt) {
       const dateMatch = prompt.match(/\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/) || prompt.match(/\d{1,2}月\d{1,2}號?日?/);
       const dateStr = dateMatch ? dateMatch[0].replace(/號|日/, '').replace(/[\/月]/g, '-') : new Date().toISOString().slice(0,10);
-      const cleanDate = dateStr.length === 5 ? `2026-${dateStr}` : (dateStr.length === 4 ? `2026-0${dateStr}` : dateStr);
+      const cleanDate = dateStr.length === 5 ? '2026-' + dateStr : (dateStr.length === 4 ? '2026-0' + dateStr : dateStr);
       const formattedDateId = cleanDate.replace(/-/g, '');
 
-      let title = `${formattedDateId}_案場施工派工計畫`;
-      if (prompt.includes('吊裝') || prompt.includes('吊車')) title = `${formattedDateId}_燈桿吊裝與高空作業案`;
-      else if (prompt.includes('防水') || prompt.includes('外牆')) title = `${formattedDateId}_高空外牆防水防墜案`;
-      else if (prompt.includes('焊接') || prompt.includes('風管')) title = `${formattedDateId}_通風管路焊接與侷限空間安裝案`;
+      let title = formattedDateId + '_案場施工派工計畫';
+      if (prompt.includes('吊裝') || prompt.includes('吊車') || prompt.includes('燈桿')) title = formattedDateId + '_燈桿吊裝與高空作業案';
+      else if (prompt.includes('防水') || prompt.includes('外牆')) title = formattedDateId + '_高空外牆防水防墜案';
+      else if (prompt.includes('焊接') || prompt.includes('風管')) title = formattedDateId + '_通風管路焊接與侷限空間安裝案';
 
       return {
         id: "proj_" + Date.now(),
@@ -871,13 +1007,15 @@ JSON 結構規範：
       const p = appState.currentProject;
       if (!p) return;
 
-      document.getElementById('badge-plan-date').textContent = p.date;
-      document.getElementById('label-plan-title').textContent = p.title;
-      document.getElementById('label-plan-location').textContent = p.location;
-      document.getElementById('label-plan-redlines').innerHTML = p.redlines.replace(/\n/g, '<br>');
+      document.getElementById('badge-plan-date').textContent = p.date || '';
+      document.getElementById('label-plan-title').textContent = p.title || '';
+      document.getElementById('label-plan-location').textContent = p.location || '';
+      document.getElementById('label-plan-redlines').innerHTML = (p.redlines || '').replace(/\n/g, '<br>');
 
       const container = document.getElementById('steps-container');
       container.innerHTML = '';
+
+      if (!p.steps || !Array.isArray(p.steps)) return;
 
       p.steps.forEach(step => {
         const badgeColor = step.dangerLevel === '高' 
@@ -886,42 +1024,40 @@ JSON 結構規範：
             ? 'bg-amber-100 text-amber-800 border-amber-200' 
             : 'bg-emerald-100 text-emerald-800 border-emerald-200';
 
+        const toolsHtml = (step.tools || []).map(t => '<span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">' + t + '</span>').join('');
+
         const card = document.createElement('div');
         card.className = "border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm flex flex-col gap-3 hover:border-slate-300 transition";
-        card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-sm flex items-center justify-center">${step.stepNumber}</span>
-              <h3 class="font-bold text-base text-slate-900">${step.title}</h3>
-            </div>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-md border ${badgeColor}">
-              危害等級：${step.dangerLevel}風險
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
-            <div class="bg-rose-50/60 p-3 rounded-lg border border-rose-100">
-              <span class="font-bold text-rose-900 block mb-0.5">⚠️ 潛在危害分析：</span>
-              <p class="text-rose-800">${step.hazards}</p>
-            </div>
-            <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">
-              <span class="font-bold text-blue-900 block mb-0.5">🛡️ 標準防範作為：</span>
-              <p class="text-blue-800">${step.precautions}</p>
-            </div>
-          </div>
-
-          <div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 text-xs">
-            <span class="font-bold text-emerald-950 flex items-center gap-1.5">
-              🎯 員工自主驗收查驗要點（自我防錯把關）：
-            </span>
-            <p class="text-emerald-900 mt-1 font-medium">${step.checkpoints}</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-1.5 pt-1">
-            <span class="text-[11px] font-bold text-slate-500">本工步所需機具：</span>
-            ${step.tools.map(t => `<span class="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">${t}</span>`).join('')}
-          </div>
-        `;
+        card.innerHTML = 
+          '<div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-sm flex items-center justify-center">' + step.stepNumber + '</span>' +
+              '<h3 class="font-bold text-base text-slate-900">' + step.title + '</h3>' +
+            '</div>' +
+            '<span class="text-xs font-bold px-2.5 py-1 rounded-md border ' + badgeColor + '">' +
+              '危害等級：' + step.dangerLevel + '風險' +
+            '</span>' +
+          '</div>' +
+          '<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">' +
+            '<div class="bg-rose-50/60 p-3 rounded-lg border border-rose-100">' +
+              '<span class="font-bold text-rose-900 block mb-0.5">⚠️ 潛在危害分析：</span>' +
+              '<p class="text-rose-800">' + step.hazards + '</p>' +
+            '</div>' +
+            '<div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">' +
+              '<span class="font-bold text-blue-900 block mb-0.5">🛡️ 標準防範作為：</span>' +
+              '<p class="text-blue-800">' + step.precautions + '</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 text-xs">' +
+            '<span class="font-bold text-emerald-950 flex items-center gap-1.5">' +
+              '🎯 員工自主驗收查驗要點（自我防錯把關）：' +
+            '</span>' +
+            '<p class="text-emerald-900 mt-1 font-medium">' + step.checkpoints + '</p>' +
+          '</div>' +
+          '<div class="flex flex-wrap items-center gap-1.5 pt-1">' +
+            '<span class="text-[11px] font-bold text-slate-500">本工步所需機具：</span>' +
+            toolsHtml +
+          '</div>';
         container.appendChild(card);
       });
     }
@@ -933,6 +1069,8 @@ JSON 結構規範：
       const container = document.getElementById('checklist-container');
       container.innerHTML = '';
 
+      if (!p.checklist || !Array.isArray(p.checklist)) return;
+
       const categorized = {};
       p.checklist.forEach((item, idx) => {
         if (!categorized[item.category]) categorized[item.category] = [];
@@ -943,33 +1081,35 @@ JSON 結構規範：
       let checkedCount = p.checklist.filter(i => i.checked).length;
       let percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
 
-      document.getElementById('text-progress-ratio').textContent = `${checkedCount} / ${totalCount} 項 (${percentage}%)`;
-      document.getElementById('bar-checklist-progress').style.width = `${percentage}%`;
-      document.getElementById('badge-check-progress').textContent = `${percentage}%`;
+      document.getElementById('text-progress-ratio').textContent = checkedCount + ' / ' + totalCount + ' 項 (' + percentage + '%)';
+      document.getElementById('bar-checklist-progress').style.width = percentage + '%';
+      document.getElementById('badge-check-progress').textContent = percentage + '%';
 
       for (const [catName, items] of Object.entries(categorized)) {
         const catBox = document.createElement('div');
         catBox.className = "flex flex-col gap-2";
-        catBox.innerHTML = `
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1.5 rounded-md inline-block self-start">
-            📦 ${catName} (${items.filter(i => i.checked).length}/${items.length})
-          </h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            ${items.map(item => `
-              <div data-index="${item.originalIndex}" class="item-card touch-target p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ${item.checked ? 'checked-item border-slate-200' : 'bg-white border-slate-300 hover:border-brand-400 shadow-sm'}">
-                <div class="flex items-center gap-3">
-                  <div class="w-6 h-6 rounded-md border flex items-center justify-center font-bold text-sm ${item.checked ? 'bg-safety-green border-safety-green text-white' : 'border-slate-400 bg-white'}">
-                    ${item.checked ? '✓' : ''}
-                  </div>
-                  <span class="text-sm font-semibold">${item.name}</span>
-                </div>
-                <span class="text-[11px] font-bold ${item.checked ? 'text-safety-green' : 'text-slate-400'}">
-                  ${item.checked ? '已點妥' : '待確認'}
-                </span>
-              </div>
-            `).join('')}
-          </div>
-        `;
+        
+        const itemsHtml = items.map(item => 
+          '<div data-index="' + item.originalIndex + '" class="item-card touch-target p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition select-none ' + (item.checked ? 'checked-item border-slate-200' : 'bg-white border-slate-300 hover:border-brand-400 shadow-sm') + '">' +
+            '<div class="flex items-center gap-3">' +
+              '<div class="w-6 h-6 rounded-md border flex items-center justify-center font-bold text-sm ' + (item.checked ? 'bg-safety-green border-safety-green text-white' : 'border-slate-400 bg-white') + '">' +
+                (item.checked ? '✓' : '') +
+              '</div>' +
+              '<span class="text-sm font-semibold">' + item.name + '</span>' +
+            '</div>' +
+            '<span class="text-[11px] font-bold ' + (item.checked ? 'text-safety-green' : 'text-slate-400') + '">' +
+              (item.checked ? '已點妥' : '待確認') +
+            '</span>' +
+          '</div>'
+        ).join('');
+
+        catBox.innerHTML = 
+          '<h3 class="text-xs font-black uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1.5 rounded-md inline-block self-start">' +
+            '📦 ' + catName + ' (' + items.filter(i => i.checked).length + '/' + items.length + ')' +
+          '</h3>' +
+          '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">' +
+            itemsHtml +
+          '</div>';
 
         catBox.querySelectorAll('.item-card').forEach(card => {
           card.addEventListener('click', () => {
@@ -989,56 +1129,56 @@ JSON 結構規範：
       const container = document.getElementById('projects-container');
       container.innerHTML = '';
 
+      if (!appState.projects || !Array.isArray(appState.projects)) return;
+
       appState.projects.forEach(proj => {
         const isCurrent = appState.currentProject && appState.currentProject.id === proj.id;
-        const totalItems = proj.checklist.length;
-        const checkedItems = proj.checklist.filter(i => i.checked).length;
+        const totalItems = (proj.checklist || []).length;
+        const checkedItems = (proj.checklist || []).filter(i => i.checked).length;
         const ratio = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
 
         const card = document.createElement('div');
-        card.className = `border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between gap-4 transition ${isCurrent ? 'ring-2 ring-brand-500 border-brand-500' : 'border-slate-200 hover:border-slate-300'}`;
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-start">
-              <span class="text-xs font-bold text-slate-500">${proj.date}</span>
-              ${isCurrent ? '<span class="text-[10px] font-black bg-brand-600 text-white px-2 py-0.5 rounded">目前選定</span>' : ''}
-            </div>
-            <h3 class="font-bold text-base text-slate-900 mt-1">${proj.title}</h3>
-            <p class="text-xs text-slate-500 mt-1 line-clamp-1">📍 ${proj.location}</p>
-            <div class="mt-3 flex items-center justify-between text-xs text-slate-600">
-              <span>清點進度</span>
-              <span class="font-bold">${ratio}% (${checkedItems}/${totalItems})</span>
-            </div>
-            <div class="w-full bg-slate-100 rounded-full h-2 mt-1 overflow-hidden">
-              <div class="bg-safety-green h-full rounded-full" style="width: ${ratio}%"></div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-            <button class="btn-load-proj touch-target flex-1 text-xs font-bold py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition">
-              載入此案
-            </button>
-            <button class="btn-clone-proj touch-target text-xs font-semibold py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="複製為新範本">
-              📋 複製
-            </button>
-            <button class="btn-del-proj touch-target text-xs text-red-500 hover:text-red-700 p-2" title="刪除案件">
-              🗑️
-            </button>
-          </div>
-        `;
+        card.className = 'border rounded-xl p-4 bg-white shadow-sm flex flex-col justify-between gap-4 transition ' + (isCurrent ? 'ring-2 ring-brand-500 border-brand-500' : 'border-slate-200 hover:border-slate-300');
+        card.innerHTML = 
+          '<div>' +
+            '<div class="flex justify-between items-start">' +
+              '<span class="text-xs font-bold text-slate-500">' + (proj.date || '') + '</span>' +
+              (isCurrent ? '<span class="text-[10px] font-black bg-brand-600 text-white px-2 py-0.5 rounded">目前選定</span>' : '') +
+            '</div>' +
+            '<h3 class="font-bold text-base text-slate-900 mt-1">' + proj.title + '</h3>' +
+            '<p class="text-xs text-slate-500 mt-1 line-clamp-1">📍 ' + (proj.location || '') + '</p>' +
+            '<div class="mt-3 flex items-center justify-between text-xs text-slate-600">' +
+              '<span>清點進度</span>' +
+              '<span class="font-bold">' + ratio + '% (' + checkedItems + '/' + totalItems + ')</span>' +
+            '</div>' +
+            '<div class="w-full bg-slate-100 rounded-full h-2 mt-1 overflow-hidden">' +
+              '<div class="bg-safety-green h-full rounded-full" style="width: ' + ratio + '%"></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-2 pt-2 border-t border-slate-100">' +
+            '<button class="btn-load-proj touch-target flex-1 text-xs font-bold py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition">' +
+              '載入此案' +
+            '</button>' +
+            '<button class="btn-clone-proj touch-target text-xs font-semibold py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition" title="複製為新範本">' +
+              '📋 複製' +
+            '</button>' +
+            '<button class="btn-del-proj touch-target text-xs text-red-500 hover:text-red-700 p-2" title="刪除案件">' +
+              '🗑️' +
+            '</button>' +
+          '</div>';
 
         card.querySelector('.btn-load-proj').addEventListener('click', () => {
           appState.currentProject = proj;
           renderAll();
           switchTab('tab-steps');
-          showToast(`已切換至【${proj.title}】`);
+          showToast('已切換至【' + proj.title + '】');
         });
 
         card.querySelector('.btn-clone-proj').addEventListener('click', () => {
           const cloned = JSON.parse(JSON.stringify(proj));
           cloned.id = "proj_" + Date.now();
           cloned.title = cloned.title + " (複製範本)";
-          cloned.checklist.forEach(i => i.checked = false);
+          if (cloned.checklist) cloned.checklist.forEach(i => i.checked = false);
           appState.projects.unshift(cloned);
           appState.currentProject = cloned;
           saveProjectsToStorage();
@@ -1051,7 +1191,7 @@ JSON 結構規範：
             alert('系統至少需保留一個案件資料！');
             return;
           }
-          if (confirm(`確定要刪除【${proj.title}】嗎？`)) {
+          if (confirm('確定要刪除【' + proj.title + '】嗎？')) {
             appState.projects = appState.projects.filter(p => p.id !== proj.id);
             if (appState.currentProject.id === proj.id) {
               appState.currentProject = appState.projects[0];
